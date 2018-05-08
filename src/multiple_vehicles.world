@@ -1,0 +1,76 @@
+define map model
+(
+  # sombre, sensible, artistic
+  color "gray30"
+
+  # most maps will need a bounding box
+  boundary 1
+
+  gui_nose 0
+  gui_grid 0
+  gui_outline 0
+  gripper_return 0
+  fiducial_return 0
+  laser_return 1
+)
+
+# set the resolution of the underlying raytrace model in meters
+resolution 0.005
+
+interval_sim 10  # simulation timestep in milliseconds
+interval_real 10  # real-time interval between simulation updates in milliseconds 
+window
+( 
+  #size [ 243 308 ] 
+ #center [327.990 371.960] 
+  center [0 0]
+#rotate [ 0.000 -1.560 ]
+  #rotate [ 0.000 -282.000 ]
+  scale 1
+)
+
+map
+(
+  name "KIT"
+  bitmap "road.png"
+  size [ 500 100 1 ] #pixels/10
+)
+define topurg ranger
+(
+ sensor(
+  range [0.0 50.0]
+  fov 180
+  samples 360
+  )
+  # generic model properties
+  color "black"
+  size [ 0.050 0.050 0.100 ]
+)
+
+define gc position
+(
+  #size [0.65 0.65 0.25]
+  #origin [-0.05 0 0 0]
+   drive "diff"
+  localization "gps"
+ wheelbase 4
+  size [4.0 2.0 0.250]
+  velocity [5.0 0.0 0.0 0.0]
+    # [ xmin xmax ymin ymax zmin zmax amin amax ]				
+    velocity_bounds [-1 10 -1 10 -1 10 -90 90 ]					
+    acceleration_bounds [-10 10 -10 10 -10 10 -90 90]
+
+  origin [1.26 0.000 0.000 0.000]
+  gui_nose 1
+
+  topurg(pose [3.17 0.000 -0.100 0.000])
+)
+
+# throw in a robot
+gc( pose [27 -12 0.000 90] name "robot_0" color "red")
+gc( pose [40 8 0.000 180] name "robot_1" color "orange")
+#gc( pose [-117.298 110.783 0.000 -157.081] name "gc3" color "yellow")
+#gc( pose [-112.376 112.744 0.000 -148.487] name "gc4" color "green")
+#gc( pose [-106.220 115.304 0.000 -151.352] name "gc5" color "cyan")
+#gc( pose [-100.136 117.839 0.000 -151.352] name "gc6" color "blue")
+#gc( pose [-94.214 120.612 0.000 -148.487] name "gc7" color "purple")

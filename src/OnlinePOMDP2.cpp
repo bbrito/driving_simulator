@@ -1,0 +1,712 @@
+
+
+#include <driving_simulator/OnlinePOMDP2.h>
+#include <driving_simulator/MPC.h"
+#include <algorithm>
+
+#include <sstream>
+#include <stdio.h>
+#include <fstream>
+
+const double PI = 3.1415926;
+const double obs_veh_num = 4;
+const double radius_disks = sqrt(4*4/pow(4*2,2)+2*2*0.25);
+const double Length = 4;
+const double Width = 2;
+const double initi_ego_x = 27;
+const double initi_ego_y = -15;
+const double initi_ego_v = 3;
+const double initi_obs_x = 50 + (0.65-0.5)*20;
+const double initi_obs_y = 8;
+const double initi_obs_v = 3;
+const int n_points_spline = 100;
+const int N_SPLINE_POINTS = 30;
+
+
+namespace despot{
+POMDP::POMDP(){}
+
+
+vector<tk::spline> POMDP::Ref_path(vector<double> x, vector<double> y, vector<double> theta) {
+
+	double k, dk, L;
+	vector<double> X(10), Y(10);
+	vector<double> X_all, Y_all, S_all;
+	double total_length=0;
+	int n_clothoid = 20;
+	S_all.push_back(0);
+
+
+
+	for (int i = 0; i < x.size()-1; i++){
+		Clothoid::buildClothoid(x[i], y[i], theta[i], x[i+1], y[i+1], theta[i+1], k, dk, L);
+
+		Clothoid::pointsOnClothoid(x[i], y[i], theta[i], k, dk, L, n_clothoid, X, Y);
+		if (i==0){
+			X_all.insert(X_all.end(), X.begin(), X.end());
+			Y_all.insert(Y_all.end(), Y.begin(), Y.end());
+		}
+		else{
+			X.erase(X.begin()+0);
+			Y.erase(Y.begin()+0);
+			X_all.insert(X_all.end(), X.begin(), X.end());
+			Y_all.insert(Y_all.end(), Y.begin(), Y.end());
+		}
+		total_length = total_length + L;
+		for (int j=1; j< n_clothoid; j++){
+				S_all.push_back(S_all[j-1+i*(n_clothoid-1)]+L/(n_clothoid-1));
+		}
+
+	}
+
+	tk::spline ref_path_x, ref_path_y;
+	ref_path_x.set_points(S_all, X_all);
+	ref_path_y.set_points(S_all, Y_all);
+
+
+	dist_spline_pts = total_length / n_points_spline;
+	vector<double> ss(n_points_spline),xx(n_points_spline),yy(n_points_spline);
+
+	for (int i=0; i<n_points_spline; i++){
+		ss[i] = dist_spline_pts *i;
+		xx[i] = ref_path_x(ss[i]);
+		yy[i] = ref_path_y(ss[i]);
+	}
+	ref_path_x.set_points(ss,xx);
+	ref_path_y.set_points(ss,yy);
+
+	vector<tk::spline> ref_path_(2);
+	ref_path_[0] = ref_path_x;
+	ref_path_[1] = ref_path_y;
+
+	return ref_path_;
+}
+
+
+
+void POMDP::InitializeDefaultParameters(){
+    Globals::config.num_scenarios = 100;
+    Globals::config.time_per_move = 1.0/3;
+    Globals::config.search_depth = 10;
+}
+
+DSPOMDP* POMDP::InitializeModel(option::Option* options){
+    DSPOMDP* model  = new POMDP_Plan();
+    return model;
+}
+
+void POMDP::OptionParse(option::Option* options, int& num_runs,
+                   std::string& simulator_type, std::string& belief_type, int& time_limit,
+                   std::string& solver_type, bool& search_solver){
+  if (options[E_SILENCE])
+    Globals::config.silence = true;
+
+  if (options[E_DEPTH])
+    Globals::config.search_depth = atoi(options[E_DEPTH].arg);
+
+  if (options[E_DISCOUNT])
+    Globals::config.discount = atof(options[E_DISCOUNT].arg);
+
+  if (options[E_SEED])
+    Globals::config.root_seed = atoi(options[E_SEED].arg);
+  else { // last 9 digits of current time in milli second
+    long millis = (long)get_time_second() * 1000;
+    long range = (long)pow((double)10, (int)9);
+    Globals::config.root_seed =
+        (unsigned int)(millis - (millis / range) * range);
+  }
+
+  if (options[E_TIMEOUT])
+    Globals::config.time_per_move = atof(options[E_TIMEOUT].arg);
+
+  if (options[E_NUMPARTICLES])
+    Globals::config.num_scenarios = atoi(options[E_NUMPARTICLES].arg);
+
+  if (options[E_PRUNE])
+    Globals::config.pruning_constant = atof(options[E_PRUNE].arg);
+
+  if (options[E_GAP])
+    Globals::config.xi = atof(options[E_GAP].arg);
+
+  if (options[E_SIM_LEN])
+    Globals::config.sim_len = atoi(options[E_SIM_LEN].arg);
+
+  if (options[E_EVALUATOR])
+    simulator_type = options[E_EVALUATOR].arg;
+
+  if (options[E_MAX_POLICY_SIM_LEN])
+    Globals::config.max_policy_sim_len =
+        atoi(options[E_MAX_POLICY_SIM_LEN].arg);
+
+  if (options[E_DEFAULT_ACTION])
+    Globals::config.default_action = options[E_DEFAULT_ACTION].arg;
+
+  if (options[E_RUNS])
+    num_runs = atoi(options[E_RUNS].arg);
+
+  if (options[E_BELIEF])
+    belief_type = options[E_BELIEF].arg;
+
+  if (options[E_TIME_LIMIT])
+    time_limit = atoi(options[E_TIME_LIMIT].arg);
+
+  if (options[E_NOISE])
+    Globals::config.noise = atof(options[E_NOISE].arg);
+
+  search_solver = options[E_SEARCH_SOLVER];
+
+  if (options[E_SOLVER])
+    solver_type = options[E_SOLVER].arg;
+
+  int verbosity = 0;
+  if (options[E_VERBOSITY])
+    verbosity = atoi(options[E_VERBOSITY].arg);
+  logging::level(verbosity);
+
+}
+
+
+Solver* POMDP::InitializeSolver(DSPOMDP *model, string solver_type,
+                                    option::Option *options) {
+
+  // DESPOT or its default policy
+  if (solver_type == "DESPOT" ||
+      solver_type == "PLB") // PLB: particle lower bound
+  {
+    string blbtype = options[E_BLBTYPE] ? options[E_BLBTYPE].arg : "DEFAULT";
+    string lbtype = options[E_LBTYPE] ? options[E_LBTYPE].arg : "DEFAULT";
+    ScenarioLowerBound *lower_bound =
+        model->CreateScenarioLowerBound(lbtype, blbtype);
+
+    logi << "Created lower bound " << typeid(*lower_bound).name() << endl;
+
+    if (solver_type == "DESPOT") {
+      string bubtype = options[E_BUBTYPE] ? options[E_BUBTYPE].arg : "DEFAULT";
+      string ubtype = options[E_UBTYPE] ? options[E_UBTYPE].arg : "DEFAULT";
+      ScenarioUpperBound *upper_bound =
+          model->CreateScenarioUpperBound(ubtype, bubtype);
+
+      logi << "Created upper bound " << typeid(*upper_bound).name() << endl;
+
+      solver = new DESPOT(model, lower_bound, upper_bound);
+    } else
+      solver = lower_bound;
+  } // AEMS or its default policy
+  else if (solver_type == "AEMS" || solver_type == "BLB") {
+    string lbtype = options[E_LBTYPE] ? options[E_LBTYPE].arg : "DEFAULT";
+    BeliefLowerBound *lower_bound =
+        static_cast<BeliefMDP *>(model)->CreateBeliefLowerBound(lbtype);
+
+    logi << "Created lower bound " << typeid(*lower_bound).name() << endl;
+
+    if (solver_type == "AEMS") {
+      string ubtype = options[E_UBTYPE] ? options[E_UBTYPE].arg : "DEFAULT";
+      BeliefUpperBound *upper_bound =
+          static_cast<BeliefMDP *>(model)->CreateBeliefUpperBound(ubtype);
+
+      logi << "Created upper bound " << typeid(*upper_bound).name() << endl;
+
+      solver = new AEMS(model, lower_bound, upper_bound);
+    } else
+      solver = lower_bound;
+  } // POMCP or DPOMCP
+  else if (solver_type == "POMCP" || solver_type == "DPOMCP") {
+    string ptype = options[E_PRIOR] ? options[E_PRIOR].arg : "DEFAULT";
+    POMCPPrior *prior = model->CreatePOMCPPrior(ptype);
+
+    logi << "Created POMCP prior " << typeid(*prior).name() << endl;
+
+    if (options[E_PRUNE]) {
+      prior->exploration_constant(Globals::config.pruning_constant);
+    }
+
+    if (solver_type == "POMCP")
+      solver = new POMCP(model, prior);
+    else
+      solver = new DPOMCP(model, prior);
+  } else { // Unsupported solver
+    cerr << "ERROR: Unsupported solver type: " << solver_type << endl;
+    exit(1);
+  }
+  return solver;
+}
+
+void POMDP::DisplayParameters(option::Option *options, DSPOMDP *model) {
+
+  string lbtype = options[E_LBTYPE] ? options[E_LBTYPE].arg : "DEFAULT";
+  string ubtype = options[E_UBTYPE] ? options[E_UBTYPE].arg : "DEFAULT";
+  default_out << "Model = " << typeid(*model).name() << endl
+              << "Random root seed = " << Globals::config.root_seed << endl
+              << "Search depth = " << Globals::config.search_depth << endl
+              << "Discount = " << Globals::config.discount << endl
+              << "driving_simulator steps = " << Globals::config.sim_len << endl
+              << "Number of scenarios = " << Globals::config.num_scenarios
+              << endl
+              << "Search time per step = " << Globals::config.time_per_move
+              << endl
+              << "Regularization constant = "
+              << Globals::config.pruning_constant << endl
+              << "Lower bound = " << lbtype << endl
+              << "Upper bound = " << ubtype << endl
+              << "Policy simulation depth = "
+              << Globals::config.max_policy_sim_len << endl
+              << "Target gap ratio = " << Globals::config.xi << endl;
+  // << "Solver = " << typeid(*solver).name() << endl << endl;
+}
+
+void POMDP::Initialization(int argc, char* argv[]){
+  clock_t main_clock_start = clock();
+  EvalLog::curr_inst_start_time = get_time_second();
+
+  const char *program = (argc > 0) ? argv[0] : "despot";
+
+  argc -= (argc > 0);
+  argv += (argc > 0); // skip program name argv[0] if present
+
+  option::Stats stats(usage, argc, argv);
+  option::Option *options = new option::Option[stats.options_max];
+  option::Option *buffer = new option::Option[stats.buffer_max];
+  option::Parser parse(usage, argc, argv, options, buffer);
+
+  string solver_type = "DESPOT";
+  bool search_solver;
+
+  /* =========================
+   * Parse required parameters
+   * =========================*/
+  int num_runs = 1;
+  string simulator_type = "pomdp";
+  string belief_type = "DEFAULT";
+  int time_limit = -1;
+
+  /* =========================================
+   * Problem specific default parameter values
+*=========================================*/
+  InitializeDefaultParameters();
+
+  /* =========================
+   * Parse optional parameters
+   * =========================*/
+  if (options[E_HELP]) {
+    cout << "Usage: " << program << " [options]" << endl;
+    option::printUsage(std::cout, usage);
+  }
+  OptionParse(options, num_runs, simulator_type, belief_type, time_limit,
+              solver_type, search_solver);
+
+  /* =========================
+   * Global random generator
+   * =========================*/
+  Seeds::root_seed(Globals::config.root_seed);
+  unsigned world_seed = Seeds::Next();
+  unsigned seed = Seeds::Next();
+  Random::RANDOM = Random(seed);
+
+  /* =========================
+   * initialize model
+   * =========================*/
+  model = InitializeModel(options);
+
+   /* initialize solver
+   * =========================*/
+  solver = InitializeSolver(model, solver_type, options);
+  assert(solver != NULL);
+
+
+    // Initial state
+	State* state = model->CreateStartState();
+
+   /* =========================
+      Initial belief
+      =========================*/
+
+	double start_t = get_time_second();
+	delete solver->belief();
+	double end_t = get_time_second();
+
+	Belief* belief = model->InitialBelief(state, belief_type);
+
+	solver->belief(belief);
+
+
+	/*=========================
+	   Reference path for obstacle vehicle
+	   ========================*/
+    vector<double> x_A_0 = {initi_obs_x, 30};
+	vector<double> y_A_0 = {initi_obs_y, 8};
+	vector<double> theta_A_0 = {PI, PI};
+	vector<double> x_A_1 = {initi_obs_x, 30, 23, 23};
+	vector<double> y_A_1 = {initi_obs_y, 8, 0, -50};
+	vector<double> theta_A_1 = {PI, PI, -PI/2, -PI/2};
+
+
+	REF_PATH_A_0 = Ref_path(x_A_0, y_A_0, theta_A_0);
+	//cout << REF_PATH_A_0.size() << endl;
+	REF_PATH_A_1 = Ref_path(x_A_1, y_A_1, theta_A_1);
+
+
+	/*===============================
+	Initialization of Line Marker
+	=================================*/
+    line1.type = visualization_msgs::Marker::LINE_STRIP;
+    line1.id = 16;
+    line1.scale.x = 0.1;
+    //line1.color.g = 1.0f;
+    line1.color.b = 0.6f;
+    line1.color.a = 1.0;
+    line1.header.frame_id = "/my_frame";
+    line1.ns = "trajectory2";
+    line1.action = visualization_msgs::Marker::ADD;
+    line1.lifetime = ros::Duration(0.4);
+
+    line2.type = visualization_msgs::Marker::LINE_STRIP;
+    line2.id = 17;
+    line2.scale.x = 0.1;
+    //line2.color.g = 1.0f;
+    line2.color.b = 0.6f;
+    line2.color.a = 1.0;
+    line2.header.frame_id = "/my_frame";
+    line2.ns = "trajectory2";
+    line2.action = visualization_msgs::Marker::ADD;
+    line2.lifetime = ros::Duration(0.4);
+
+    hist1.type = visualization_msgs::Marker::ARROW;
+    hist1.id = 24;
+    hist1.scale.y = 0.5;
+    hist1.scale.z = 1;
+    hist1.color.g = 1.0f;
+    hist1.color.a = 1.0;
+    hist1.pose.orientation.x = 0;
+    hist1.pose.orientation.y = 0;
+    hist1.pose.orientation.z = sin(PI/2);
+    hist1.pose.orientation.w = cos(PI/2);
+    hist1.header.frame_id = "/my_frame";
+    hist1.ns = "trajectory2";
+    hist1.action = visualization_msgs::Marker::ADD;
+//    hist1.pose.orientation.z = sin(PI/4);
+//    hist1.pose.orientation.w = cos(PI/4);
+    hist1.lifetime = ros::Duration(0.4);
+
+    hist2.type = visualization_msgs::Marker::ARROW;
+    hist2.id = 25;
+    hist2.scale.y = 0.5;
+    hist2.scale.z = 1;
+    hist2.color.g = 1.0f;
+    hist2.color.a = 1.0;
+    hist2.pose.orientation.x = 0;
+    hist2.pose.orientation.y = 0;
+    hist2.pose.orientation.z = sin(-PI/4);
+    hist2.pose.orientation.w = cos(-PI/4);
+    hist2.header.frame_id = "/my_frame";
+    hist2.ns = "trajectory2";
+    hist2.action = visualization_msgs::Marker::ADD;
+//    hist2.pose.orientation.z = sin(PI/4);
+//    hist2.pose.orientation.w = cos(PI/4);
+    hist2.lifetime = ros::Duration(0.4);
+
+    hist3.type = visualization_msgs::Marker::CYLINDER;
+    hist3.id = 26;
+    hist3.color.r = 1.0f;
+    hist3.color.a = 1.0;
+    hist3.header.frame_id = "/my_frame";
+    hist3.ns = "trajectory2";
+    hist3.action = visualization_msgs::Marker::ADD;
+//    hist3.pose.orientation.z = sin(PI/4);
+//    hist3.pose.orientation.w = cos(PI/4);
+    hist3.lifetime = ros::Duration(0.4);
+
+}
+
+void POMDP::ReconstructPolicy(vector<int> policyStar, vector<int> depthOrder, vector<int>& policy0, vector<int>& policy1){
+
+    policy0.push_back(policyStar[0]);
+    int i;
+    for (i=1; i<depthOrder.size(); i++){
+        if (depthOrder[i] > depthOrder[i-1]){
+            policy0.push_back(policyStar[i]);
+        }
+        else
+            break;
+    }
+
+
+
+    policy1 = policy0;
+    for (;i < depthOrder.size(); i++){
+        if (depthOrder[i] < policy1.size()){
+            policy1[depthOrder[i]] = policyStar[i];
+        }
+        else{
+            policy1.push_back(policyStar[i]);
+            policy0.push_back(policyStar[i]);
+        }
+    }
+
+    policy0.insert(policy0.end(), 50-policy0.size(), 2);
+    policy1.insert(policy1.end(), 50-policy1.size(), 2);
+}
+
+int POMDP::POMDP_Solver(vector<double> state_A, vector<driving_simulator_msgs::Waypoint> traj_R){
+    // Update the policy of ego-vehicle
+    model->traj_R = traj_R;
+
+    int action = solver->Search().action;
+    policyStar = solver->policyStar;
+    depthOrder = solver->depthOrder;
+    goal_probs = solver->goal_probs;
+    model->goal_prob_ = goal_probs;
+
+    beliefs.belief.clear();
+    beliefs.belief = goal_probs;
+
+
+    // Transition from optimal policy to state space
+    vector<int> policy0, policy1;
+
+    ReconstructPolicy(policyStar, depthOrder, policy0, policy1);
+
+    vector<double> state(6), next_state, state_sim;
+
+    state[0] = state_A[0];
+    state[1] = state_A[1];
+    state[2] = state_A[2];
+    state[3] = state_A[3];
+    state[5] = state_A[5];
+
+    traj0.Traj.clear();
+    traj1.Traj.clear();
+    line1.points.clear();
+    line2.points.clear();
+    POMDP_Plan* pomdp_plan = static_cast<POMDP_Plan*>(model);
+
+    vector<double> goal_probs_order = goal_probs;//ascending order
+    std::sort(goal_probs_order.begin(), goal_probs_order.end());
+    // only need to consider one policy
+    if ((goal_probs_order[2]-goal_probs_order[1])/goal_probs_order[2] > 0.8){
+        double index = std::distance(goal_probs.begin(), std::find(goal_probs.begin(), goal_probs.end(), goal_probs_order[2]));
+        state[4] = index;
+        state_sim = state;
+        for (int i=0; i<policy0.size(); i++){
+            geometry_msgs::Point p;
+            driving_simulator_msgs::Waypoint point;
+            next_state = pomdp_plan->Dynamics_A(state_sim, policy0[i]);
+            point.x = next_state[0];
+            point.y = next_state[1];
+            point.theta = next_state[2];
+            traj0.Traj.push_back(point);
+            state_sim = next_state;
+            p.x = point.x;
+            p.y = point.y;
+            p.z = 0;
+            line1.points.push_back(p);
+        }
+        line2.points = line1.points;
+        traj1.Traj = traj0.Traj;
+    }
+    else{// should consider two policies
+        state[4] = 0;
+        state_sim = state;
+        for (int i=0; i<policy0.size(); i++){
+            geometry_msgs::Point p;
+            driving_simulator_msgs::Waypoint point;
+            next_state = pomdp_plan->Dynamics_A(state_sim, policy0[i]);
+            point.x = next_state[0];
+            point.y = next_state[1];
+            point.theta = next_state[2];
+            traj0.Traj.push_back(point);
+            state_sim = next_state;
+            p.x = point.x;
+            p.y = point.y;
+            p.z = 0;
+            line1.points.push_back(p);
+        }
+
+        next_state.clear(); state_sim.clear();
+        state[4] = 1;
+        state_sim = state;
+        for (int i=0; i<policy1.size(); i++){
+            geometry_msgs::Point p;
+            driving_simulator_msgs::Waypoint point;
+            next_state = pomdp_plan->Dynamics_A(state_sim, policy1[i]);
+            point.x = next_state[0];
+            point.y = next_state[1];
+            point.theta = next_state[2];
+            traj1.Traj.push_back(point);
+            state_sim = next_state;
+            p.x = point.x;
+            p.y = point.y;
+            p.z = 0;
+            line2.points.push_back(p);
+
+        }
+    }
+
+//    hist1.points.clear(); hist2.points.clear(); hist3.points.clear();
+//    geometry_msgs::Point p;
+//    p.x = state_A[0] -2; p.y = state_A[1]+2; p.z = 0;
+//    hist1.header.stamp = ros::Time::now();
+//    hist1.points.push_back(p);
+//    p.x -= goal_probs[0]*2.0;
+//    hist1.points.push_back(p);
+//
+    hist1.header.stamp = ros::Time::now();
+    hist1.pose.position.x = state_A[0] -2;
+    hist1.pose.position.y = state_A[1] +2;
+    hist1.pose.position.z = 0;
+
+    hist1.scale.x = goal_probs[0] *3;
+
+    hist2.header.stamp = ros::Time::now();
+    hist2.pose.position.x = state_A[0] -2;
+    hist2.pose.position.y = state_A[1] +5;
+    hist2.pose.position.z = 0;
+
+    hist2.scale.x = goal_probs[1] *3;
+
+    hist3.header.stamp = ros::Time::now();
+    hist3.scale.x = goal_probs[2] * 1;
+    hist3.scale.y = goal_probs[2] * 1;
+    hist3.scale.z = 0.5;
+
+    hist3.pose.position.x = state_A[0] -2;
+    hist3.pose.position.y = state_A[1] +6;
+    hist3.pose.position.z = 0;
+
+//    p.x = state_A[0]-2; p.y = state_A[1]+3; p.z = 0;
+//    hist2.header.stamp = ros::Time::now();
+//    hist2.points.push_back(p);
+//    p.x -= goal_probs[1]*2.0;
+//    hist2.points.push_back(p);
+//
+//    p.x = state_A[0]-2; p.y = state_A[1]+4; p.z = 0;
+//    hist3.header.stamp = ros::Time::now();
+//    hist3.points.push_back(p);
+//    p.x -= goal_probs[2]*2.0;
+//    hist3.points.push_back(p);
+
+    line_pub.publish(hist1);
+    line_pub.publish(hist2);
+    line_pub.publish(hist3);
+
+
+    trajA0_pub.publish(traj0);
+    trajA1_pub.publish(traj1);
+    belief_pub.publish(beliefs);
+
+    line1.header.stamp = ros::Time::now();
+    line2.header.stamp = ros::Time::now();
+    line_pub.publish(line1);
+    line_pub.publish(line2);
+
+    state_A = pomdp_plan->Dynamics_A(state_A, 2);
+
+    return action;
+
+}
+
+void POMDP::POMDP_Update(int action, vector<double> state_R, vector<double> state_A){
+    POMDP_Plan_State next_state(state_R,state_A);
+    POMDP_Plan* pomdp_plan = static_cast<POMDP_Plan*>(model);
+  // cout << " observation: " << state_R[0] << " " << state_R[1] << " " << state_A[0] << " " << state_A[1] << endl;
+    int observation = pomdp_plan->MakeObservation(next_state);
+
+    solver->Update(action, observation);
+
+
+}
+}
+
+
+vector<driving_simulator_msgs::Waypoint> traj_R;
+vector<double> pose_R = {initi_ego_x, initi_ego_y, PI/2}, state_A;
+int action;
+void Callback1(const driving_simulator_msgs::Traj::ConstPtr& msg){
+    traj_R = msg->Traj;
+}
+void Callback2(const driving_simulator_msgs::State::ConstPtr& msg){
+    pose_R = msg->pose;
+}
+void Callback3(const driving_simulator_msgs::State::ConstPtr& msg){
+    state_A = msg->pose;
+}
+void Callback4(const driving_simulator_msgs::Action::ConstPtr& msg){
+    action = msg->action;
+}
+
+int main(int argc, char **argv)
+{
+    // ROS connection
+    ros::init(argc, argv, "DESPOT2");
+    ros::NodeHandle n;
+    ros::Rate r(2.5);
+    ros::Subscriber trajR_sub = n.subscribe("traj_R", 100, Callback1);
+    ros::Subscriber pose_R_sub = n.subscribe("pose_R", 100, Callback2);
+    ros::Subscriber state_A_sub = n.subscribe("state_A_2", 100, Callback3);
+    ros::Subscriber action_sub = n.subscribe("action_2", 100, Callback4);
+
+
+    int count = 0;
+    despot::POMDP POMDP_Planner;
+
+    state_A = {initi_obs_x, initi_obs_y, PI, initi_obs_v, 1, 0};//x,y,theta,v,g,s
+
+    double start = ros::Time::now().toSec();
+    POMDP_Planner.Initialization(argc, argv);
+    cout << "time for initialization:" << ros::Time::now().toSec()-start << endl;
+
+    //Initial trajectory of ego-vehicle
+
+    double dx, dy, s;
+    driving_simulator_msgs::Waypoint point;
+
+    vector<double> x_R = {initi_ego_x, 27, 12, -50};
+	vector<double> y_R = {initi_ego_y, -2, 8, 8};
+	vector<double> theta_R = {PI/2, PI/2, PI, PI};
+	vector<tk::spline> ref_path_R = POMDP_Planner.Ref_path(x_R, y_R, theta_R);
+
+    for (int i=0; i<50; i++){
+        s = initi_ego_v*0.1*i;
+        point.x = ref_path_R[0](s);
+        point.y = ref_path_R[1](s);
+        dx = ref_path_R[0].deriv(1,s);
+        dy = ref_path_R[1].deriv(1,s);
+        point.theta = atan2(dy, dx);
+        traj_R.push_back(point);
+    }
+
+    //ofstream outfile;
+    //outfile.open("/home/bingyu/ProMotionPlan/ICRA/scaling/DESPOT_2_solvetime3.txt");
+    double solvetime;
+    while (count <= 220)
+    {
+        cout << "--------------------Round " << count << "----------------" << endl;
+
+    /**
+    * Update the DESPOT solver
+    **/
+        if (count>0){
+
+            POMDP_Planner.POMDP_Update(action, pose_R, state_A);
+
+        }
+
+    /**
+     * Anticipation of obstacle vehicles' motion
+     */
+        start = ros::Time::now().toSec();
+        int a = POMDP_Planner.POMDP_Solver(state_A, traj_R);
+        solvetime = ros::Time::now().toSec() - start;
+
+
+        /** record data **/
+
+        //outfile << solvetime << endl;
+
+        count++;
+        ros::spinOnce();
+        r.sleep();
+
+    }
+    //outfile.close();
+  return 0;
+}
