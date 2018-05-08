@@ -20,6 +20,7 @@ catkin_package(
 
 include_directories(
   include
+  include/
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -29,85 +30,84 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 add_executable(MultipolicyMPC src/FORCESNLPsolver_casadi2forces.c
 src/FORCESNLPsolver_model_1.c
 src/FORCESNLPsolver_model_50.c
-/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.cpp
-/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.cpp
+        src/Clothoid.cpp
+        src/spline.cpp
 src/MPC.cpp
 )
 
-#add_executable(DESPOT
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/POMDPrviz.cpp
-# src/OnlinePOMDP.cpp)
+add_executable(DESPOT
+src/Clothoid.cpp
+src/spline.cpp
+src/POMDPrviz.cpp
+src/OnlinePOMDP.cpp)
 
-#add_executable(DESPOT1
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/POMDPrviz1.cpp
-#src/OnlinePOMDP1.cpp)
-#
-#
-#add_executable(DESPOT2
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/POMDPrviz2.cpp
-#src/OnlinePOMDP2.cpp)
-#
-#
-#add_executable(DESPOT3
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/POMDPrviz3.cpp
-# src/OnlinePOMDP3.cpp)
-#
-# add_executable(DriverModel
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.cpp
-# src/DriverModel.cpp)
-#
-#  add_executable(DriverModel1
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.cpp
-# src/DriverModel1.cpp)
-#
-#
-#  add_executable(DriverModel2
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.cpp
-# src/DriverModel2.cpp)
-#
-#  add_executable(DriverModel3
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.cpp
-#/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.cpp
-# src/DriverModel3.cpp)
-#
-#
-#
+add_executable(DESPOT1
+        src/Clothoid.cpp
+        src/spline.cpp
+        src/POMDPrviz1.cpp
+src/OnlinePOMDP1.cpp)
+
+
+add_executable(DESPOT2
+        src/Clothoid.cpp
+        src/spline.cpp
+        src/POMDPrviz2.cpp
+src/OnlinePOMDP2.cpp)
+
+
+add_executable(DESPOT3
+        src/Clothoid.cpp
+        src/spline.cpp
+        src/POMDPrviz3.cpp
+ src/OnlinePOMDP3.cpp)
+
+add_executable(DriverModel
+        src/Clothoid.cpp
+        src/spline.cpp
+ src/DriverModel.cpp)
+
+add_executable(DriverModel1
+        src/Clothoid.cpp
+        src/spline.cpp
+ src/DriverModel1.cpp)
+
+add_executable(DriverModel2
+        src/Clothoid.cpp
+        src/spline.cpp
+src/DriverModel2.cpp)
+
+add_executable(DriverModel3
+        src/Clothoid.cpp
+        src/spline.cpp
+src/DriverModel3.cpp)
+
+
+
 target_link_libraries(MultipolicyMPC
 ${catkin_LIBRARIES}
 /home/bdebrito/catkin_ws/src/driving_simulator/src/libFORCESNLPsolver.so)
 #
-#target_link_libraries(DESPOT
-#${catkin_LIBRARIES}
-#despot)
-#
-#target_link_libraries(DESPOT1
-#${catkin_LIBRARIES}
-#despot)
-#
-#target_link_libraries(DESPOT2
-#${catkin_LIBRARIES}
-#despot)
-#
-#target_link_libraries(DESPOT3
-#${catkin_LIBRARIES}
-#despot)
-#
-#target_link_libraries(DriverModel
-#${catkin_LIBRARIES})
-#target_link_libraries(DriverModel1
-#${catkin_LIBRARIES})
-#target_link_libraries(DriverModel2
-#${catkin_LIBRARIES})
-#target_link_libraries(DriverModel3
-#${catkin_LIBRARIES})
+target_link_libraries(DESPOT
+${catkin_LIBRARIES}
+despot)
+
+target_link_libraries(DESPOT1
+${catkin_LIBRARIES}
+despot)
+
+target_link_libraries(DESPOT2
+${catkin_LIBRARIES}
+despot)
+
+target_link_libraries(DESPOT3
+${catkin_LIBRARIES}
+despot)
+
+target_link_libraries(DriverModel
+${catkin_LIBRARIES})
+target_link_libraries(DriverModel1
+${catkin_LIBRARIES})
+target_link_libraries(DriverModel2
+${catkin_LIBRARIES})
+target_link_libraries(DriverModel3
+${catkin_LIBRARIES})

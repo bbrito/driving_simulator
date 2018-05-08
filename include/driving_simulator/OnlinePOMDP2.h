@@ -10,7 +10,7 @@
 #include <driving_simulator_msgs/Waypoint.h>
 #include <driving_simulator_msgs/State.h>
 #include <driving_simulator_msgs/Action.h>
-#include "/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/POMDPrviz2.h"
+#include <driving_simulator/POMDPrviz2.h>
 
 #include <vector>
 #include <cmath>
