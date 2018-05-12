@@ -16,7 +16,7 @@
 #include <cmath>
 
 #include <typeinfo>
-
+const double PI = 3.1415926;
 
 using namespace std;
 class DriverModel {
@@ -27,23 +27,51 @@ private:
     ros::NodeHandle n_;
     ros::Publisher stateA_pub = n_.advertise<driving_simulator_msgs::State>("state_A", 100);
     ros::Publisher action_pub = n_.advertise<driving_simulator_msgs::Action>("action", 100);
+
     driving_simulator_msgs::State state_A_ros;
     driving_simulator_msgs::Action action;
+
+    ros::Subscriber poseR_sub;
 public:
-    DriverModel(){};
-    ~DriverModel(){};
+	DriverModel();
+	~DriverModel(){};
 
+     double obs_veh_num;
+     double radius_disks;
+     double Length;
+     double Width;
+     double initi_ego_x;
+     double initi_ego_y;
+     double initi_ego_v;
+     double initi_obs_x;
+     double initi_obs_y;
+     double initi_obs_v;
+     int n_points_spline;
+     int N_SPLINE_POINTS;
+     double Acc;
 
-void ConstSpeed(double speed, vector<double>& state);
+	// Rfe path parameters
+	vector<double> x_A_0;
+	vector<double> y_A_0;
+	vector<double> theta_A_0;
+	vector<double> x_A_1;
+	vector<double> y_A_1;
+	vector<double> theta_A_1;
 
-void FriendlyDriver(vector<double>& state_A, vector<double> state_R);
-void ConservativeDriver(vector<double>& state_A, vector<double> state_R);
+    vector<double> state;
 
-inline vector<tk::spline> Ref_path(vector<double> x, vector<double> y, vector<double> theta);
+    vector<double> pose_R;
 
-void ConstructRefPath();
+    void ConstSpeed(double speed);
 
+    void FriendlyDriver(vector<double>& state_A, vector<double> state_R);
+    void ConservativeDriver(vector<double>& state_A, vector<double> state_R);
 
+    inline vector<tk::spline> Ref_path(vector<double> x, vector<double> y, vector<double> theta);
+
+    void ConstructRefPath();
+
+    void Callback(const driving_simulator_msgs::State::ConstPtr& msg);
 
 };
 

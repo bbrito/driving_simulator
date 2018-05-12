@@ -61,11 +61,6 @@ add_executable(DESPOT3
         src/POMDPrviz3.cpp
  src/OnlinePOMDP3.cpp)
 
-add_executable(DriverModel
-        src/Clothoid.cpp
-        src/spline.cpp
- src/DriverModel.cpp)
-
 add_executable(DriverModel1
         src/Clothoid.cpp
         src/spline.cpp
@@ -103,11 +98,29 @@ target_link_libraries(DESPOT3
 ${catkin_LIBRARIES}
 despot)
 
-target_link_libraries(DriverModel
-${catkin_LIBRARIES})
+add_library(DriverModel
+        src/Clothoid.cpp
+        src/spline.cpp
+        src/DriverModel.cpp)
+
+add_dependencies(DriverModel ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(DriverModel ${catkin_LIBRARIES})
+
+add_executable(DriverModel_node src/driver_node.cpp)
+add_dependencies(DriverModel_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(DriverModel_node DriverModel ${catkin_LIBRARIES} )
+
 target_link_libraries(DriverModel1
 ${catkin_LIBRARIES})
 target_link_libraries(DriverModel2
 ${catkin_LIBRARIES})
 target_link_libraries(DriverModel3
 ${catkin_LIBRARIES})
+
+### INSTALL ###
+install(TARGETS DriverModel_node
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )

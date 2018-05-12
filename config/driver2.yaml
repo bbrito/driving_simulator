@@ -1,0 +1,21 @@
+## Driver Parameters
+Id: 31
+obs_veh_num: 4
+radius_disks: 1.11803
+Length: 4
+Width: 2
+## initial state
+init_state: [27, -15, 3]
+init_obs: [-2, 4, 0, 3 , 0 , 0]
+
+n_points_spline: 100
+N_SPLINE_POINTS: 30
+Acc: 2
+
+## ref path
+x_A_0 : [-2, 50]
+y_A_0 : [4, 4]
+theta_A_0: [0, 0]
+x_A_1 : [-2, 17, 23, 23]
+y_A_1 : [4, 4, 0, -50]
+theta_A_1: [0, 0, -1.72, -1.72]

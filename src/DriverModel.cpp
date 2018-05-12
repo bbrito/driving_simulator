@@ -2,21 +2,109 @@
 #include <driving_simulator/DriverModel.h>
 #include <fstream>
 
-const double PI = 3.1415926;
-const double obs_veh_num = 4;
-const double radius_disks = sqrt(4*4/pow(4*2,2)+2*2*0.25);
-const double Length = 4;
-const double Width = 2;
-const double initi_ego_x = 27;
-const double initi_ego_y = -15;
-const double initi_ego_v = 3;
-const double initi_obs_x = 40 + (0.5-0.5)*20;
-const double initi_obs_y = 8;
-const double initi_obs_v = 3;
-const int n_points_spline = 100;
-const int N_SPLINE_POINTS = 30;
-const double Acc = 2;
+DriverModel::DriverModel(){
 
+    if (!n_.getParam("obs_veh_num", obs_veh_num))
+    {
+        ROS_ERROR("Parameter 'obs_veh_num' not set");
+        return;
+    }
+
+    if (!n_.getParam("radius_disks", radius_disks))
+    {
+        ROS_ERROR("Parameter 'radius_disks' not set");
+        return;
+    }
+
+    if (!n_.getParam("Length", Length))
+    {
+        ROS_ERROR("Parameter 'Length' not set");
+        return;
+    }
+
+    if (!n_.getParam("Width", Width))
+    {
+        ROS_ERROR("Parameter 'Width' not set");
+        return;
+    }
+    vector<double> init_state;
+    if (!n_.getParam("init_state", init_state))
+    {
+        ROS_ERROR("Parameter 'radius_disks' not set");
+        return;
+    }
+    else{
+        initi_ego_x = init_state[0];
+        initi_ego_y = init_state[1];
+        initi_ego_v = init_state[2];
+    }
+    vector<double> init_obs;
+    if (!n_.getParam("init_obs", init_obs))
+    {
+        ROS_ERROR("Parameter 'radius_disks' not set");
+        return;
+    }
+    else{
+        initi_obs_x = init_state[0];
+        initi_obs_y = init_state[1];
+        initi_obs_v = init_state[2];
+    }
+
+    if (!n_.getParam("n_points_spline", n_points_spline))
+    {
+        ROS_ERROR("Parameter 'n_points_spline' not set");
+        return;
+    }
+
+    if (!n_.getParam("N_SPLINE_POINTS", N_SPLINE_POINTS))
+    {
+        ROS_ERROR("Parameter 'N_SPLINE_POINTS' not set");
+        return;
+    }
+
+    if (!n_.getParam("x_A_0", x_A_0))
+    {
+        ROS_ERROR("Parameter 'x_A_0' not set");
+        return;
+    }
+
+    if (!n_.getParam("y_A_0", y_A_0))
+    {
+        ROS_ERROR("Parameter 'y_A_0' not set");
+        return;
+    }
+
+    if (!n_.getParam("theta_A_0", theta_A_0))
+    {
+        ROS_ERROR("Parameter 'theta_A_0' not set");
+        return;
+    }
+
+    if (!n_.getParam("x_A_1", x_A_1))
+    {
+        ROS_ERROR("Parameter 'x_A_1' not set");
+        return;
+    }
+
+    if (!n_.getParam("y_A_1", y_A_1))
+    {
+        ROS_ERROR("Parameter 'y_A_1' not set");
+        return;
+    }
+
+    if (!n_.getParam("theta_A_1", theta_A_1))
+    {
+        ROS_ERROR("Parameter 'theta_A_1' not set");
+        return;
+    }
+
+    pose_R = {initi_ego_x, initi_ego_y, PI/2};
+    state = {initi_obs_x, initi_obs_y, PI, initi_obs_v, 1, 0};
+
+    poseR_sub = n_.subscribe("pose_R", 100, &DriverModel::Callback, this);
+
+    ROS_INFO("Driver started");
+}
 
 vector<tk::spline> DriverModel::Ref_path(vector<double> x, vector<double> y, vector<double> theta) {
 
@@ -74,13 +162,6 @@ vector<tk::spline> DriverModel::Ref_path(vector<double> x, vector<double> y, vec
 }
 
 void DriverModel::ConstructRefPath(){
-    vector<double> x_A_0 = {initi_obs_x, 0};
-	vector<double> y_A_0 = {initi_obs_y, 8};
-	vector<double> theta_A_0 = {PI, PI};
-	vector<double> x_A_1 = {initi_obs_x, 30, 23, 23};
-	vector<double> y_A_1 = {initi_obs_y, 8, 0, -50};
-	vector<double> theta_A_1 = {PI, PI, -PI/2, -PI/2};
-
 
 	REF_PATH_A_0 = Ref_path(x_A_0, y_A_0, theta_A_0);
 
@@ -88,7 +169,7 @@ void DriverModel::ConstructRefPath(){
 
 }
 
-void DriverModel::ConstSpeed(double speed, vector<double>& state){
+void DriverModel::ConstSpeed(double speed){
 
     ConstructRefPath();
     // state={x,y.theta,v,g,s}
@@ -290,116 +371,6 @@ void DriverModel::ConservativeDriver(vector<double>& state_A, vector<double> sta
 
 }
 
-vector<double> pose_R = {initi_ego_x, initi_ego_y, PI/2};
-void Callback(const driving_simulator_msgs::State::ConstPtr& msg){
+void DriverModel::Callback(const driving_simulator_msgs::State::ConstPtr& msg){
     pose_R = msg->pose;
-}
-
-int main(int argc, char** argv){
-
-    // ROS connection
-    ros::init(argc, argv, "DriverModel");
-    ros::NodeHandle n;
-    ros::Rate r(2.5);
-    ros::Publisher veh_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 100);
-    ros::Subscriber poseR_sub = n.subscribe("pose_R", 100, Callback);
-
-
-    uint32_t shape = visualization_msgs::Marker::CUBE;
-
-    visualization_msgs::Marker Obs_veh;
-    Obs_veh.header.frame_id = "/my_frame";
-
-    Obs_veh.ns = "obs_vehicle";
-
-    Obs_veh.id = 1;
-
-    Obs_veh.type = shape;
-
-    Obs_veh.action = visualization_msgs::Marker::ADD;
-
-
-    Obs_veh.scale.x = 4.0;
-    Obs_veh.scale.y = 2.0;
-    Obs_veh.scale.z = 1;
-
-
-    Obs_veh.color.r = 0.0f;
-    Obs_veh.color.g = 0.0f;
-    Obs_veh.color.b = 1.0f;
-    Obs_veh.color.a = 1.0;
-
-
-
-    Obs_veh.lifetime = ros::Duration();
-
-
-    Obs_veh.pose.position.x = initi_obs_x;
-    Obs_veh.pose.position.y = initi_obs_y;
-    Obs_veh.pose.position.z = 0;
-    Obs_veh.pose.orientation.x = 0.0;
-    Obs_veh.pose.orientation.y = 0.0;
-    Obs_veh.pose.orientation.z = sin(PI/2);
-    Obs_veh.pose.orientation.w = cos(PI/2);
-
-
-    veh_pub.publish(Obs_veh);
-
-
-    int count = 0;
-    DriverModel Driver;
-
-
-    vector<double> state_A = {initi_obs_x, initi_obs_y, PI, initi_obs_v, 1, 0};//x,y,theta,v,g,s
-//    std::random_device rd;
-//    std::mt19937 gen(rd());
-//    std::uniform_real_distribution<double> randgm(0.0, 1.0);
-//    if (randgm(gen) < 0.5)
-//        state_A[4]  = 1;
-//    else
-//        state_A[4]  = 0;
-
-    double dis;
-    double min_dis = 999;
-
-    //ofstream outfile;
-    //outfile.open("/home/bingyu/ProMotionPlan/ICRA/scaling/clearance3.txt");
-
-    ros::Duration(6.2).sleep();
-    while (count <= 220)
-    {
-        Driver.ConstSpeed(3.0, state_A);
-        //Driver.ConservativeDriver(state_A, pose_R);
-        //Driver.FriendlyDriver(state_A, pose_R);
-
-
-        /**
-        * Update Rviz
-        **/
-        Obs_veh.header.stamp = ros::Time::now();
-
-        Obs_veh.pose.position.x = state_A[0];
-        Obs_veh.pose.position.y = state_A[1];
-        Obs_veh.pose.position.z = 0;
-        Obs_veh.pose.orientation.x = 0.0;
-        Obs_veh.pose.orientation.y = 0.0;
-        Obs_veh.pose.orientation.z = sin(state_A[2]/2);
-        Obs_veh.pose.orientation.w = cos(state_A[2]/2);
-
-        /** record data **/
-        dis = sqrt(std::pow((state_A[0] - pose_R[0]),2) + std::pow((state_A[1] - pose_R[1]),2));
-
-        //outfile << dis << endl;
-
-
-        veh_pub.publish(Obs_veh);
-        count++;
-        ros::spinOnce();
-        r.sleep();
-    }
-
-
-    //outfile.close();
-
-    return 0;
 }
