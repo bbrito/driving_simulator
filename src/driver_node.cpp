@@ -7,7 +7,7 @@ int main(int argc, char** argv){
 	ros::init(argc, argv, "DriverModel");
 	ros::NodeHandle n;
 	ros::Rate r(2.5);
-	ros::Publisher veh_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 100);
+	ros::Publisher veh_pub = n.advertise<visualization_msgs::Marker>("/visualization_marker", 100);
 
 	uint32_t shape = visualization_msgs::Marker::CUBE;
 
@@ -28,6 +28,13 @@ int main(int argc, char** argv){
 		return 0;
 	}
 
+	vector<double> color;
+	if (!n.getParam("color", color))
+	{
+		ROS_ERROR("Parameter 'color' not set");
+		return 0;
+	}
+
 	Obs_veh.type = shape;
 
 	Obs_veh.action = visualization_msgs::Marker::ADD;
@@ -38,10 +45,10 @@ int main(int argc, char** argv){
 	Obs_veh.scale.z = 1;
 
 
-	Obs_veh.color.r = 0.0f;
-	Obs_veh.color.g = 0.0f;
-	Obs_veh.color.b = 1.0f;
-	Obs_veh.color.a = 1.0;
+	Obs_veh.color.r = color[0];
+	Obs_veh.color.g = color[1];
+	Obs_veh.color.b = color[2];
+	Obs_veh.color.a = color[3];
 
 	Obs_veh.lifetime = ros::Duration();
 
@@ -55,6 +62,8 @@ int main(int argc, char** argv){
 //        state_A[4]  = 1;
 //    else
 //        state_A[4]  = 0;
+	ROS_INFO_STREAM("Initial condition " << Obs_veh.ns << "  " << Driver.state[0] << "  " << Driver.state[1] << "  " << Driver.state[2]
+						<< "  " << Driver.state[3]<< "  " << Driver.state[4] << "  " << Driver.state[5]);
 
 	double dis;
 	double min_dis = 999;

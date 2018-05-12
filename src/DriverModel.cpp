@@ -100,7 +100,7 @@ DriverModel::DriverModel(){
 
     //pose_R = {initi_ego_x, initi_ego_y, PI/2};
     pose_R = {0, 0, 0, 0, 0, 0};
-    state = {initi_obs_x, initi_obs_y, PI, initi_obs_v, 1, 0};
+    state = init_obs;
 
     poseR_sub = n_.subscribe("pose_R", 100, &DriverModel::Callback, this);
 

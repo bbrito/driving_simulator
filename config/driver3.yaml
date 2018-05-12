@@ -21,3 +21,4 @@ y_A_1 : [8, 8, 0, -50]
 theta_A_1: [3.14, 3.14, -1.72, -1.72]
 
 driving_style: "Constant"
+color: [0, 1, 1, 1]

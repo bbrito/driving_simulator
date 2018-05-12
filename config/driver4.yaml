@@ -21,3 +21,4 @@ y_A_1 : [4, 4, 0, -50]
 theta_A_1: [0, 0, -1.72, -1.72]
 
 driving_style: "Conservative"
+color: [0.5, 0, 0.5, 1]
