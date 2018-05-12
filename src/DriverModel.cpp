@@ -98,7 +98,8 @@ DriverModel::DriverModel(){
         return;
     }
 
-    pose_R = {initi_ego_x, initi_ego_y, PI/2};
+    //pose_R = {initi_ego_x, initi_ego_y, PI/2};
+    pose_R = {0, 0, 0, 0, 0, 0};
     state = {initi_obs_x, initi_obs_y, PI, initi_obs_v, 1, 0};
 
     poseR_sub = n_.subscribe("pose_R", 100, &DriverModel::Callback, this);
@@ -216,14 +217,14 @@ void DriverModel::ConstSpeed(double speed){
 
 }
 
-void DriverModel::FriendlyDriver(vector<double>& state_A, vector<double> state_R){
+void DriverModel::FriendlyDriver(vector<double>& state, vector<double> pos_R){
     ConstructRefPath();
 
-    double x_R = state_R[0];
-    double y_R = state_R[1];
-    double x_A = state_A[0];
-    double y_A = state_A[1];
-    double v_A = state_A[3];
+    double x_R = pos_R[0];
+    double y_R = pos_R[1];
+    double x_A = state[0];
+    double y_A = state[1];
+    double v_A = state[3];
     double t = 0.1;
 
     double dist_RA = sqrt(pow((x_R-x_A),2) +pow((y_R-y_A),2));
@@ -231,109 +232,109 @@ void DriverModel::FriendlyDriver(vector<double>& state_A, vector<double> state_R
     action.action = 2;
     if (1.5*Length < dist_RA && dist_RA < 2.5*Length){
         if (v_A > 2){
-            state_A[3] = std::max(0.0, v_A - Acc * t);
+            state[3] = std::max(0.0, v_A - Acc * t);
             action.action = 1;
         }
     }
     else{
         if (dist_RA <= 1.5*Length && v_A!=0){
-            state_A[3] = std::max(0.0, v_A - Acc * t);
+            state[3] = std::max(0.0, v_A - Acc * t);
             action.action = 1;
         }
     }
 
    if (dist_RA >=2.5 * Length){
     if (v_A < 3.0){
-        state_A[3] = std::max(0.0, v_A + t);
+        state[3] = std::max(0.0, v_A + t);
         action.action = 0;
     }
    }
 
 
     double progress;
-    progress = state_A[5] + state_A[3] * t;
+    progress = state[5] + state[3] * t;
 
     double dx, dy;
-    if (state_A[4] == 1.0){
-        state_A[0] = REF_PATH_A_1[0](progress);
-        state_A[1] = REF_PATH_A_1[1](progress);
+    if (state[4] == 1.0){
+        state[0] = REF_PATH_A_1[0](progress);
+        state[1] = REF_PATH_A_1[1](progress);
         dx = REF_PATH_A_1[0].deriv(1,progress);
         dy = REF_PATH_A_1[1].deriv(1,progress);
-        state_A[2] = atan2(dy, dx);
-        state_A[5] = progress;
+        state[2] = atan2(dy, dx);
+        state[5] = progress;
 
     }
     else{
-        state_A[0] = REF_PATH_A_0[0](progress);
-        state_A[1] = REF_PATH_A_0[1](progress);
+        state[0] = REF_PATH_A_0[0](progress);
+        state[1] = REF_PATH_A_0[1](progress);
         dx = REF_PATH_A_0[0].deriv(1,progress);
         dy = REF_PATH_A_0[1].deriv(1,progress);
-        state_A[2] = atan2(dy, dx);
-        state_A[5] = progress;
+        state[2] = atan2(dy, dx);
+        state[5] = progress;
 
     }
 
     state_A_ros.pose.clear();
-    state_A_ros.pose = state_A;
+    state_A_ros.pose = state;
     stateA_pub.publish(state_A_ros);
     action_pub.publish(action);
 
 }
 
-void DriverModel::ConservativeDriver(vector<double>& state_A, vector<double> state_R){
+void DriverModel::ConservativeDriver(){
     double t = 0.1;
     ConstructRefPath();
 
-    if (state_R[0] < 25){
-        if (state_A[3] < initi_obs_v){
+    if (pose_R[0] < 25){
+        if (state[3] < initi_obs_v){
             action.action = 0;
-            state_A[3] += Acc * t;
+            state[3] += Acc * t;
         }
         else{
             action.action = 2;
         }
 
         double dx, dy;
-        if (state_A[4] == 1.0){
-            state_A[5] += state_A[3] *t;
-            state_A[0] = REF_PATH_A_1[0](state_A[5]);
-            state_A[1] = REF_PATH_A_1[1](state_A[5]);
-            dx = REF_PATH_A_1[0].deriv(1,state_A[5]);
-            dy = REF_PATH_A_1[1].deriv(1,state_A[5]);
-            state_A[2] = atan2(dy, dx);
+        if (state[4] == 1.0){
+            state[5] += state[3] *t;
+            state[0] = REF_PATH_A_1[0](state[5]);
+            state[1] = REF_PATH_A_1[1](state[5]);
+            dx = REF_PATH_A_1[0].deriv(1,state[5]);
+            dy = REF_PATH_A_1[1].deriv(1,state[5]);
+            state[2] = atan2(dy, dx);
 
         }
         else{
-            state_A[5] += state_A[3] *t;
-            state_A[0] = REF_PATH_A_0[0](state_A[5]);
-            state_A[1] = REF_PATH_A_0[1](state_A[5]);
-            dx = REF_PATH_A_0[0].deriv(1,state_A[5]);
-            dy = REF_PATH_A_0[1].deriv(1,state_A[5]);
-            state_A[2] = atan2(dy, dx);
+            state[5] += state[3] *t;
+            state[0] = REF_PATH_A_0[0](state[5]);
+            state[1] = REF_PATH_A_0[1](state[5]);
+            dx = REF_PATH_A_0[0].deriv(1,state[5]);
+            dy = REF_PATH_A_0[1].deriv(1,state[5]);
+            state[2] = atan2(dy, dx);
         }
 
     }
     else{
-        if (state_A[0] <= 32){
+        if (state[0] <= 32){
             action.action = 1;
-            state_A[3] = max(0.0, state_A[3]-Acc*t);
+            state[3] = max(0.0, state[3]-Acc*t);
             double dx, dy;
-            if (state_A[4] == 1.0){
-                state_A[5] += state_A[3] *t;
-                state_A[0] = REF_PATH_A_1[0](state_A[5]);
-                state_A[1] = REF_PATH_A_1[1](state_A[5]);
-                dx = REF_PATH_A_1[0].deriv(1,state_A[5]);
-                dy = REF_PATH_A_1[1].deriv(1,state_A[5]);
-                state_A[2] = atan2(dy, dx);
+            if (state[4] == 1.0){
+                state[5] += state[3] *t;
+                state[0] = REF_PATH_A_1[0](state[5]);
+                state[1] = REF_PATH_A_1[1](state[5]);
+                dx = REF_PATH_A_1[0].deriv(1,state[5]);
+                dy = REF_PATH_A_1[1].deriv(1,state[5]);
+                state[2] = atan2(dy, dx);
 
             }
             else{
-                state_A[5] += state_A[3] *t;
-                state_A[0] = REF_PATH_A_0[0](state_A[5]);
-                state_A[1] = REF_PATH_A_0[1](state_A[5]);
-                dx = REF_PATH_A_0[0].deriv(1,state_A[5]);
-                dy = REF_PATH_A_0[1].deriv(1,state_A[5]);
-                state_A[2] = atan2(dy, dx);
+                state[5] += state[3] *t;
+                state[0] = REF_PATH_A_0[0](state[5]);
+                state[1] = REF_PATH_A_0[1](state[5]);
+                dx = REF_PATH_A_0[0].deriv(1,state[5]);
+                dy = REF_PATH_A_0[1].deriv(1,state[5]);
+                state[2] = atan2(dy, dx);
             }
 
         }
@@ -341,22 +342,22 @@ void DriverModel::ConservativeDriver(vector<double>& state_A, vector<double> sta
         else{
             action.action = 2;
             double dx, dy;
-            if (state_A[4] == 1.0){
-                state_A[5] += state_A[3] *t;
-                state_A[0] = REF_PATH_A_1[0](state_A[5]);
-                state_A[1] = REF_PATH_A_1[1](state_A[5]);
-                dx = REF_PATH_A_1[0].deriv(1,state_A[5]);
-                dy = REF_PATH_A_1[1].deriv(1,state_A[5]);
-                state_A[2] = atan2(dy, dx);
+            if (state[4] == 1.0){
+                state[5] += state[3] *t;
+                state[0] = REF_PATH_A_1[0](state[5]);
+                state[1] = REF_PATH_A_1[1](state[5]);
+                dx = REF_PATH_A_1[0].deriv(1,state[5]);
+                dy = REF_PATH_A_1[1].deriv(1,state[5]);
+                state[2] = atan2(dy, dx);
 
             }
             else{
-                state_A[5] += state_A[3] *t;
-                state_A[0] = REF_PATH_A_0[0](state_A[5]);
-                state_A[1] = REF_PATH_A_0[1](state_A[5]);
-                dx = REF_PATH_A_0[0].deriv(1,state_A[5]);
-                dy = REF_PATH_A_0[1].deriv(1,state_A[5]);
-                state_A[2] = atan2(dy, dx);
+                state[5] += state[3] *t;
+                state[0] = REF_PATH_A_0[0](state[5]);
+                state[1] = REF_PATH_A_0[1](state[5]);
+                dx = REF_PATH_A_0[0].deriv(1,state[5]);
+                dy = REF_PATH_A_0[1].deriv(1,state[5]);
+                state[2] = atan2(dy, dx);
             }
 
 
@@ -364,7 +365,7 @@ void DriverModel::ConservativeDriver(vector<double>& state_A, vector<double> sta
     }
 
     state_A_ros.pose.clear();
-    state_A_ros.pose = state_A;
+    state_A_ros.pose = state;
     stateA_pub.publish(state_A_ros);
     action_pub.publish(action);
 

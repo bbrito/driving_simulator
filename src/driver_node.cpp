@@ -21,6 +21,12 @@ int main(int argc, char** argv){
 		ROS_ERROR("Parameter 'Obs_veh.id' not set");
 		return 0;
 	}
+	string driving_style;
+	if (!n.getParam("driving_style", driving_style))
+	{
+		ROS_ERROR("Parameter 'driving_style' not set");
+		return 0;
+	}
 
 	Obs_veh.type = shape;
 
@@ -59,8 +65,12 @@ int main(int argc, char** argv){
 	ros::Duration(6.2).sleep();
 	while (count <= 220)
 	{
-		Driver.ConstSpeed(3.0);
-		//Driver.ConservativeDriver(state_A, pose_R);
+
+		if(driving_style=="Constant")
+			Driver.ConstSpeed(3.0);
+
+		if(driving_style=="Conservative")
+			Driver.ConservativeDriver();
 		//Driver.FriendlyDriver(state_A, pose_R);
 
 

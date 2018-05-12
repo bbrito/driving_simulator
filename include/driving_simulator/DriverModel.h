@@ -65,7 +65,7 @@ public:
     void ConstSpeed(double speed);
 
     void FriendlyDriver(vector<double>& state_A, vector<double> state_R);
-    void ConservativeDriver(vector<double>& state_A, vector<double> state_R);
+    void ConservativeDriver();
 
     inline vector<tk::spline> Ref_path(vector<double> x, vector<double> y, vector<double> theta);
 

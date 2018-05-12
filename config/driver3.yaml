@@ -1,5 +1,5 @@
 ## Driver Parameters
-Id: 31
+Id: 32
 obs_veh_num: 4
 radius_disks: 1.11803
 Length: 4
@@ -19,3 +19,5 @@ theta_A_0: [3.14, 3.14]
 x_A_1 : [53, 30, 23, 23]
 y_A_1 : [8, 8, 0, -50]
 theta_A_1: [3.14, 3.14, -1.72, -1.72]
+
+driving_style: "Constant"
