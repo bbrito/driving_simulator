@@ -59,10 +59,10 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /Driver1/visualization_marker
+      Marker Topic: /visualization_marker
       Name: Marker
       Namespaces:
-        //Driver1: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 0.699999988
@@ -87,7 +87,7 @@ Visualization Manager:
       Marker Topic: /obs_vehicle_1/visualization_marker
       Name: Marker
       Namespaces:
-        //obs_vehicle_1: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -95,7 +95,7 @@ Visualization Manager:
       Marker Topic: /obs_vehicle_2/visualization_marker
       Name: Marker
       Namespaces:
-        //obs_vehicle_2: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -103,7 +103,7 @@ Visualization Manager:
       Marker Topic: /obs_vehicle_3/visualization_marker
       Name: Marker
       Namespaces:
-        //obs_vehicle_3: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true

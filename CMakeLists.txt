@@ -61,23 +61,6 @@ add_executable(DESPOT3
         src/POMDPrviz3.cpp
  src/OnlinePOMDP3.cpp)
 
-add_executable(DriverModel1
-        src/Clothoid.cpp
-        src/spline.cpp
- src/DriverModel1.cpp)
-
-add_executable(DriverModel2
-        src/Clothoid.cpp
-        src/spline.cpp
-src/DriverModel2.cpp)
-
-add_executable(DriverModel3
-        src/Clothoid.cpp
-        src/spline.cpp
-src/DriverModel3.cpp)
-
-
-
 target_link_libraries(MultipolicyMPC
 ${catkin_LIBRARIES}
 /home/bdebrito/catkin_ws/src/driving_simulator/src/libFORCESNLPsolver.so)
@@ -110,13 +93,6 @@ target_link_libraries(DriverModel ${catkin_LIBRARIES})
 add_executable(DriverModel_node src/driver_node.cpp)
 add_dependencies(DriverModel_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(DriverModel_node DriverModel ${catkin_LIBRARIES} )
-
-target_link_libraries(DriverModel1
-${catkin_LIBRARIES})
-target_link_libraries(DriverModel2
-${catkin_LIBRARIES})
-target_link_libraries(DriverModel3
-${catkin_LIBRARIES})
 
 ### INSTALL ###
 install(TARGETS DriverModel_node

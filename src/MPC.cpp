@@ -694,6 +694,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "MultipolicyMPC");
     ros::NodeHandle n;
     ros::Rate r(2.5);
+	ROS_WARN_STREAM("MPC Started");
     ros::Publisher veh_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 100);
     ros::Subscriber trajA0_sub = n.subscribe("traj_A0", 100, Callback1);
     ros::Subscriber trajA1_sub = n.subscribe("traj_A1", 100, Callback2);
@@ -710,11 +711,7 @@ int main(int argc, char **argv)
     ros::Subscriber trajA0_3_sub = n.subscribe("traj_A0_3", 100, Callback10);
     ros::Subscriber trajA1_3_sub = n.subscribe("traj_A1_3", 100, Callback11);
     ros::Subscriber belief_3_sub = n.subscribe("belief_3", 100, Callback12);
-
-
-
-
-
+	ROS_INFO_STREAM("MPC Started");
 
     uint32_t shape = visualization_msgs::Marker::CUBE;
 
@@ -899,6 +896,7 @@ int main(int argc, char **argv)
     vector< vector<driving_simulator_msgs::Waypoint> > est_traj_A_0(4), est_traj_A_1(4);
     vector< vector<double> > belief_all(4);
     double solvetime = 0;
+	ROS_INFO_STREAM("MPC Started");
     while (count <= 220)
     {
         //listening on traj_A_0, traj_A_1, beliefs
