@@ -26,10 +26,14 @@ include_directories(
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
+add_library(casadi_LIBRARIES
+        src/FORCESNLPsolver_casadi2forces.c
+        src/FORCESNLPsolver_model_1.c
+        src/FORCESNLPsolver_model_50.c
+        )
 
-add_executable(MultipolicyMPC src/FORCESNLPsolver_casadi2forces.c
-src/FORCESNLPsolver_model_1.c
-src/FORCESNLPsolver_model_50.c
+
+add_executable(MultipolicyMPC
         src/Clothoid.cpp
         src/spline.cpp
 src/MPC.cpp
@@ -61,25 +65,28 @@ add_executable(DESPOT3
         src/POMDPrviz3.cpp
  src/OnlinePOMDP3.cpp)
 
-target_link_libraries(MultipolicyMPC
+target_link_libraries(MultipolicyMPC casadi_LIBRARIES
 ${catkin_LIBRARIES}
 /home/bdebrito/catkin_ws/src/driving_simulator/src/libFORCESNLPsolver.so)
 #
-target_link_libraries(DESPOT
+target_link_libraries(DESPOT casadi_LIBRARIES
 ${catkin_LIBRARIES}
 despot)
 
-target_link_libraries(DESPOT1
+target_link_libraries(DESPOT1 casadi_LIBRARIES
 ${catkin_LIBRARIES}
-despot)
+despot
+        casadi_LIBRARIES)
 
-target_link_libraries(DESPOT2
+target_link_libraries(DESPOT2 casadi_LIBRARIES
 ${catkin_LIBRARIES}
-despot)
+despot
+        casadi_LIBRARIES)
 
-target_link_libraries(DESPOT3
+target_link_libraries(DESPOT3 casadi_LIBRARIES
 ${catkin_LIBRARIES}
-despot)
+despot
+        casadi_LIBRARIES)
 
 add_library(DriverModel
         src/Clothoid.cpp
@@ -93,6 +100,20 @@ target_link_libraries(DriverModel ${catkin_LIBRARIES})
 add_executable(DriverModel_node src/driver_node.cpp)
 add_dependencies(DriverModel_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(DriverModel_node DriverModel ${catkin_LIBRARIES} )
+
+add_library(POMDPSolver
+        src/Clothoid.cpp
+        src/spline.cpp
+        src/POMDP.cpp
+        src/OnPOMDP.cpp)
+
+add_dependencies(POMDPSolver ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} casadi_LIBRARIES)
+
+target_link_libraries(POMDPSolver ${catkin_LIBRARIES} casadi_LIBRARIES)
+
+add_executable(POMDPSolver_node src/pomdp_node.cpp)
+add_dependencies(POMDPSolver_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(POMDPSolver_node POMDPSolver despot ${catkin_LIBRARIES} )
 
 ### INSTALL ###
 install(TARGETS DriverModel_node

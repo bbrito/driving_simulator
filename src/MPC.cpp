@@ -888,7 +888,7 @@ int main(int argc, char **argv)
 
 
     //ros::Duration(6.5).sleep(); // no rqt
-    ros::Duration(6.2).sleep();
+    ros::Duration(130.2).sleep();
 
 //    ofstream outfile;
 //    outfile.open("/home/bingyu/ProMotionPlan/ICRA/scaling/MPC_time3.txt");

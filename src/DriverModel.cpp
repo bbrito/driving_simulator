@@ -4,31 +4,31 @@
 
 DriverModel::DriverModel(){
 
-    if (!n_.getParam("obs_veh_num", obs_veh_num))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/obs_veh_num", obs_veh_num))
     {
         ROS_ERROR("Parameter 'obs_veh_num' not set");
         return;
     }
 
-    if (!n_.getParam("radius_disks", radius_disks))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/radius_disks", radius_disks))
     {
         ROS_ERROR("Parameter 'radius_disks' not set");
         return;
     }
 
-    if (!n_.getParam("Length", Length))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/Length", Length))
     {
         ROS_ERROR("Parameter 'Length' not set");
         return;
     }
 
-    if (!n_.getParam("Width", Width))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/Width", Width))
     {
         ROS_ERROR("Parameter 'Width' not set");
         return;
     }
     vector<double> init_state;
-    if (!n_.getParam("init_state", init_state))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/init_state", init_state))
     {
         ROS_ERROR("Parameter 'radius_disks' not set");
         return;
@@ -39,7 +39,7 @@ DriverModel::DriverModel(){
         initi_ego_v = init_state[2];
     }
     vector<double> init_obs;
-    if (!n_.getParam("init_obs", init_obs))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/init_obs", init_obs))
     {
         ROS_ERROR("Parameter 'radius_disks' not set");
         return;
@@ -50,49 +50,49 @@ DriverModel::DriverModel(){
         initi_obs_v = init_state[2];
     }
 
-    if (!n_.getParam("n_points_spline", n_points_spline))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/n_points_spline", n_points_spline))
     {
         ROS_ERROR("Parameter 'n_points_spline' not set");
         return;
     }
 
-    if (!n_.getParam("N_SPLINE_POINTS", N_SPLINE_POINTS))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/N_SPLINE_POINTS", N_SPLINE_POINTS))
     {
         ROS_ERROR("Parameter 'N_SPLINE_POINTS' not set");
         return;
     }
 
-    if (!n_.getParam("x_A_0", x_A_0))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/x_A_0", x_A_0))
     {
         ROS_ERROR("Parameter 'x_A_0' not set");
         return;
     }
 
-    if (!n_.getParam("y_A_0", y_A_0))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/y_A_0", y_A_0))
     {
         ROS_ERROR("Parameter 'y_A_0' not set");
         return;
     }
 
-    if (!n_.getParam("theta_A_0", theta_A_0))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/theta_A_0", theta_A_0))
     {
         ROS_ERROR("Parameter 'theta_A_0' not set");
         return;
     }
 
-    if (!n_.getParam("x_A_1", x_A_1))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/x_A_1", x_A_1))
     {
         ROS_ERROR("Parameter 'x_A_1' not set");
         return;
     }
 
-    if (!n_.getParam("y_A_1", y_A_1))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/y_A_1", y_A_1))
     {
         ROS_ERROR("Parameter 'y_A_1' not set");
         return;
     }
 
-    if (!n_.getParam("theta_A_1", theta_A_1))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/theta_A_1", theta_A_1))
     {
         ROS_ERROR("Parameter 'theta_A_1' not set");
         return;
@@ -219,7 +219,8 @@ void DriverModel::ConstSpeed(double speed){
 
 void DriverModel::FriendlyDriver(vector<double>& state, vector<double> pos_R){
     ConstructRefPath();
-
+    // it will first stop
+    // it will wait for the other vehicles
     double x_R = pos_R[0];
     double y_R = pos_R[1];
     double x_A = state[0];

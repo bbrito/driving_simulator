@@ -10,10 +10,10 @@
 #include <driving_simulator_msgs/Waypoint.h>
 #include <driving_simulator_msgs/State.h>
 #include <driving_simulator_msgs/Action.h>
-#include "/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.h"
-#include "/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.h"
+#include <driving_simulator/spline.h>
+#include <driving_simulator/Clothoid.h>
 #include "FORCESNLPsolver.h"
-
+#include "/home/bdebrito/catkin_ws/src/driving_simulator/src/FORCESNLPsolver_casadi2forces.c"
 #include <vector>
 #include <cmath>
 
@@ -38,7 +38,7 @@ private:
 	FORCESNLPsolver_params mpcparams;
 	FORCESNLPsolver_output mpcoutput;
 	FORCESNLPsolver_info mpcinfo;
-	FORCESNLPsolver_ExtFunc pt2Function = &FORCESNLPsolver_casadi2forces;
+	FORCESNLPsolver_extfunc pt2Function = &FORCESNLPsolver_casadi2forces;
 
 	bool Flag = false;
 

@@ -16,20 +16,20 @@ int main(int argc, char** argv){
 
 	Obs_veh.ns = n.getNamespace();
 
-	if (!n.getParam("Id", Obs_veh.id))
+	if (!n.getParam(n.getNamespace()+"/DriverModel/Id", Obs_veh.id))
 	{
 		ROS_ERROR("Parameter 'Obs_veh.id' not set");
 		return 0;
 	}
 	string driving_style;
-	if (!n.getParam("driving_style", driving_style))
+	if (!n.getParam(n.getNamespace()+"/DriverModel/driving_style", driving_style))
 	{
 		ROS_ERROR("Parameter 'driving_style' not set");
 		return 0;
 	}
 
 	vector<double> color;
-	if (!n.getParam("color", color))
+	if (!n.getParam(n.getNamespace()+"/DriverModel/color", color))
 	{
 		ROS_ERROR("Parameter 'color' not set");
 		return 0;
@@ -71,7 +71,7 @@ int main(int argc, char** argv){
 	//ofstream outfile;
 	//outfile.open("/home/bingyu/ProMotionPlan/ICRA/scaling/clearance3.txt");
 
-	ros::Duration(6.2).sleep();
+	ros::Duration(130.2).sleep();
 	while (count <= 220)
 	{
 

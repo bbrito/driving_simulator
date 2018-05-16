@@ -1,0 +1,25 @@
+## POMDP Parameters
+obs_veh_num: 4
+radius_disks: 1.11803
+Length: 4
+Width: 2
+V_max: 6
+REWARD_ACC: -1 # acceleration reward
+REWARD_COLL: -100 # collision reward
+## initial state
+init_ego_state: [27, -15, 3]
+init_obs_state: [53, 8, 1.72, 3 , 1 , 0]
+
+n_points_spline: 100
+N_SPLINE_POINTS: 30
+acceleration: 2
+
+## ref path
+x_A_0 : [53, 30]
+y_A_0 : [8, 8]
+theta_A_0: [3.14, 3.14]
+x_A_1 : [53, 30, 23, 23]
+y_A_1 : [8, 8, 0, -50]
+theta_A_1: [3.14, 3.14, -1.72, -1.72]
+driving_style: "Constant"
+color: [0, 0, 1, 1]

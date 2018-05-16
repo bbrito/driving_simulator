@@ -1,12 +1,16 @@
-#ifndef MPMPC_H_
-#define MPMPC_H_
+
+#ifndef OnlinePOMDP_H_
+#define OnlinePOMDP_H_
 
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
-#include "std_msgs/String.h"
-#include "FORCESNLPsolver.h"
-#include <driving_simulator/POMDPrviz.h>
-#include <driving_simulator/spline.h>
+#include <std_msgs/String.h>
+#include <driving_simulator_msgs/Belief.h>
+#include <driving_simulator_msgs/Traj.h>
+#include <driving_simulator_msgs/Waypoint.h>
+#include <driving_simulator_msgs/State.h>
+#include <driving_simulator_msgs/Action.h>
+#include <driving_simulator/POMDP.h>
 
 #include <vector>
 #include <cmath>
@@ -24,51 +28,6 @@
 
 #include <despot/evaluator.h>
 
-
-class Road {
-
-public:
-    vector<tk::spline> Ref_path(vector<double> x, vector<double> y, vector<double> theta, double& dist_spline_pts );
-};
-
-
-class MPMPC : public Road{
-private:
-
-
-	FORCESNLPsolver_params mpcparams;
-	FORCESNLPsolver_output mpcoutput;
-	FORCESNLPsolver_info mpcinfo;
-	FORCESNLPsolver_extfunc pt2Function = &FORCESNLPsolver_casadi2forces;
-
-	bool Flag = false;
-
-	double time[50], dt[50];
-
-
-public:
-	MPMPC();
-    vector<tk::spline> ref_path_R;
-    double dist_spline_pts;
-
-	void MPCSolver(vector<double>& state, despot::Traj& traj_R);
-
-	void MPCUpdateParams(vector<double> state_R_, vector<despot::Traj> est_traj_A_, vector<double> beliefs);
-
-	vector<double> Uncertainty(double time, double weight);
-
-	inline vector<double> Rotation(double angle){
-		vector<double> rotation(4);
-		rotation[0] = cos(angle);
-		rotation[1] = sin(angle);
-		rotation[2] = -sin(angle);
-		rotation[3] = cos(angle);
-		return rotation;
-	};
-
-
-
-};
 
 using namespace std;
 namespace despot{
@@ -190,17 +149,51 @@ const option::Descriptor usage[] = {
 
 class POMDP {
 private:
+    ros::NodeHandle n_;
+    ros::Publisher trajA0_pub = n_.advertise<driving_simulator_msgs::Traj>("traj_A0", 100);
+    ros::Publisher trajA1_pub = n_.advertise<driving_simulator_msgs::Traj>("traj_A1", 100);
+    ros::Publisher belief_pub = n_.advertise<driving_simulator_msgs::Belief>("belief", 100);
+    ros::Publisher line_pub = n_.advertise<visualization_msgs::Marker>("visualization_marker", 100);
+    visualization_msgs::Marker line1, line2, hist1, hist2, hist3, ellips1, ellips2;
 
-	double v_A = 5.0;
+    driving_simulator_msgs::Traj traj0, traj1;
+    driving_simulator_msgs::Belief beliefs;
 
+	vector<double> x_A_0;
+	vector<double> y_A_0;
+	vector<double> theta_A_0;
+	vector<double> x_A_1;
+	vector<double> y_A_1;
+	vector<double> theta_A_1;
+
+    vector<tk::spline> REF_PATH_A_0, REF_PATH_A_1;
 protected:
     Solver* solver = NULL;
     DSPOMDP* model = NULL;
 public:
     POMDP();
+
+	double obs_veh_num;
+	double radius_disks;
+	double Length;
+	double Width;
+	double initi_ego_x;
+	double initi_ego_y;
+	double initi_ego_v;
+	double initi_obs_x;
+	double initi_obs_y;
+	double initi_obs_v;
+	int n_points_spline;
+	int N_SPLINE_POINTS;
+
+	//ROS INTERFACE
+
     vector<int> policyStar;
     vector<int> depthOrder;
     vector<double> goal_probs;
+    double dist_spline_pts;
+
+    vector<tk::spline> Ref_path(vector<double> x, vector<double> y, vector<double> theta);
 
     DSPOMDP* InitializeModel(option::Option* options);
     void InitializeDefaultParameters();
@@ -215,12 +208,12 @@ public:
                    std::string& solver_type, bool& search_solver);
 
 
-
     void DisplayParameters(option::Option* options, DSPOMDP* model);
 
-    int POMDP_Solver(vector<double>& state_A, Traj& traj0, Traj& traj1, Traj traj_R);
+    vector<double> Uncertainty(double time, double weight);
+    int POMDP_Solver(vector<double> state_A, vector<driving_simulator_msgs::Waypoint> traj_R);
 
-    void POMDP_Update(int action, vector<double> pos0, vector<double> pos1);
+    void POMDP_Update(int action, vector<double> state_R, vector<double> state_A);
     void ReconstructPolicy(vector<int> policyStar, vector<int> depthOrder, vector<int>& policy0, vector<int>& policy1);
 
 };
