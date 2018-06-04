@@ -39,54 +39,11 @@ add_executable(MultipolicyMPC
 src/MPC.cpp
 )
 
-add_executable(DESPOT
-src/Clothoid.cpp
-src/spline.cpp
-src/POMDPrviz.cpp
-src/OnlinePOMDP.cpp)
-
-add_executable(DESPOT1
-        src/Clothoid.cpp
-        src/spline.cpp
-        src/POMDPrviz1.cpp
-src/OnlinePOMDP1.cpp)
-
-
-add_executable(DESPOT2
-        src/Clothoid.cpp
-        src/spline.cpp
-        src/POMDPrviz2.cpp
-src/OnlinePOMDP2.cpp)
-
-
-add_executable(DESPOT3
-        src/Clothoid.cpp
-        src/spline.cpp
-        src/POMDPrviz3.cpp
- src/OnlinePOMDP3.cpp)
 
 target_link_libraries(MultipolicyMPC casadi_LIBRARIES
 ${catkin_LIBRARIES}
 /home/bdebrito/catkin_ws/src/driving_simulator/src/libFORCESNLPsolver.so)
 #
-target_link_libraries(DESPOT casadi_LIBRARIES
-${catkin_LIBRARIES}
-despot)
-
-target_link_libraries(DESPOT1 casadi_LIBRARIES
-${catkin_LIBRARIES}
-despot
-        casadi_LIBRARIES)
-
-target_link_libraries(DESPOT2 casadi_LIBRARIES
-${catkin_LIBRARIES}
-despot
-        casadi_LIBRARIES)
-
-target_link_libraries(DESPOT3 casadi_LIBRARIES
-${catkin_LIBRARIES}
-despot
-        casadi_LIBRARIES)
 
 add_library(DriverModel
         src/Clothoid.cpp

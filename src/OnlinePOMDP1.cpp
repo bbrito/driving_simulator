@@ -1,7 +1,6 @@
 
 
 #include <driving_simulator/OnlinePOMDP1.h>
-#include <driving_simulator/MPC.h>
 #include <algorithm>
 
 #include <sstream>
@@ -339,7 +338,7 @@ void POMDP::Initialization(int argc, char* argv[]){
 	vector<double> y_A_1 = {initi_obs_y, 4, 0, -50};
 	vector<double> theta_A_1 = {0, 0, -PI/2, -PI/2};
 
-
+    // motion intentions
 	REF_PATH_A_0 = Ref_path(x_A_0, y_A_0, theta_A_0);
 	//cout << REF_PATH_A_0.size() << endl;
 	REF_PATH_A_1 = Ref_path(x_A_1, y_A_1, theta_A_1);
@@ -706,7 +705,7 @@ void POMDP::POMDP_Update(int action, vector<double> state_R, vector<double> stat
 
 
 vector<driving_simulator_msgs::Waypoint> traj_R;
-vector<double> pose_R = {initi_ego_x, initi_ego_y, PI/2}, state_A;
+vector<double> pose_R, state_A;
 int action;
 void Callback1(const driving_simulator_msgs::Traj::ConstPtr& msg){
     traj_R = msg->Traj;
@@ -727,6 +726,9 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "DESPOT1");
     ros::NodeHandle n;
     ros::Rate r(2.5);
+
+    pose_R = {initi_ego_x, initi_ego_y, PI/2};
+
     ros::Subscriber trajR_sub = n.subscribe("traj_R", 100, Callback1);
     ros::Subscriber pose_R_sub = n.subscribe("pose_R", 100, Callback2);
     ros::Subscriber state_A_sub = n.subscribe("state_A_1", 100, Callback3);

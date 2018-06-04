@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <driving_simulator/POMDPrviz2.h>
-#include <driving_simulator/MPC.h>
 #include <cmath>
 #include <map>
 #include "eigen3/Eigen/Dense"

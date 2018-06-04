@@ -122,6 +122,7 @@ public:
 
 POMDP_Plan::POMDP_Plan(){
 
+		ROS_INFO_STREAM("POMDP_Plan::POMDP_Plan");
 	if (!n_.getParam(ros::this_node::getName()+"/V_max", V_max))
 	{
 		ROS_ERROR("Parameter 'V_max' not set");
@@ -402,38 +403,30 @@ vector<double> POMDP_Plan::Dynamics_R(vector<double> state_R) const{
 
 	vector<double> next_state_R(3);
     //cout << "Enter dynamics R" << endl;
-	double x = state_R[0];
-	double y = state_R[1];
-	double theta = state_R[2];
-	//cout << "state R" << x << " " << y << " " << theta << endl;
-    //cout << x << " " << y << " " << theta << endl;
-//    for (int i=0; i< 4; i++){
-//        cout << traj_R.x[i] << " " << traj_R.y[i] << " " << traj_R.theta[i] << endl;
-//    }
 
+	//Search for the next close point of the reference trajectory
+	// this can be strongly simplified by just comparing the actual point and the next since the robot is not moving back
 	double error_x, error_y, error_theta;
 	int i = 0;
 	do{
-        error_x = abs(traj_R[i].x - x);
-        error_y = abs(traj_R[i].y - y);
-        error_theta = abs(traj_R[i].theta - theta);
+        error_x = abs(traj_R[i].x -  state_R[0]);
+        error_y = abs(traj_R[i].y - state_R[1]);
+        error_theta = abs(traj_R[i].theta - state_R[2]);
         ++i;
 	}while((error_x > 0.1 || error_y > 0.1 || error_theta > 0.1) && (i < traj_R.size()));
-
 
 	next_state_R[0] = traj_R[i].x;
     next_state_R[1] = traj_R[i].y;
     next_state_R[2] = traj_R[i].theta;
-   // cout <<traj_R[0].x << " " << traj_R[0].y << " " << traj_R[0].theta << endl;
-   // cout << "next state: " << next_state_R[0] << " " << next_state_R[1] << " " << next_state_R[2] << endl;
 
-    //cout << state_R[0] << state_R[1] << state_R[2] << endl;
-    //cout << traj_R.x[i-1] << traj_R.y[i-1] << traj_R.theta[i-1] << endl;
+	//ROS_INFO_STREAM("POMDP_Plan::Dynamics_R: " << traj_R);
 
 	return next_state_R;
 
 }
 void POMDP_Plan::Init(){
+	//WHY???
+	// it takes an huge time to start!!!!
 	int x_R, y_R;
 	int x_A, y_A;
 	int x_R_bound_l = -50;
@@ -446,7 +439,7 @@ void POMDP_Plan::Init(){
 	int y_A_bound_u = 10;
 	int count = 1;
 	vector<int> s(4);
-
+	ROS_INFO_STREAM("POMDP_Plan::Init(");
 	for(x_R = x_R_bound_l; x_R <= x_R_bound_u; x_R = x_R + 1){
 		for(y_R = y_R_bound_l; y_R <= y_R_bound_u; y_R = y_R + 1){
 			for(x_A = x_A_bound_l; x_A <= x_A_bound_u; x_A=x_A+1){
@@ -458,7 +451,7 @@ void POMDP_Plan::Init(){
 			}
 		}
 	}
-
+	ROS_INFO_STREAM("POMDP_Plan::Init(): Done");
 
 }
 int POMDP_Plan::MakeObservation(const POMDP_Plan_State _pomdp_state) const{

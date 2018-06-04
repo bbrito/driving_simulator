@@ -1,7 +1,6 @@
 
 
 #include <driving_simulator/OnlinePOMDP.h>
-#include <driving_simulator/MPC.h>
 #include <algorithm>
 
 #include <sstream>

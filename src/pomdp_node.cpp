@@ -17,7 +17,6 @@ void Callback3(const driving_simulator_msgs::State::ConstPtr& msg){
 }
 void Callback4(const driving_simulator_msgs::Action::ConstPtr& msg){
 	action = msg->action;
-	ROS_WARN_STREAM("POMDP Started");
 }
 
 int main(int argc, char **argv)

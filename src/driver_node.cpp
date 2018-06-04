@@ -70,6 +70,13 @@ int main(int argc, char** argv){
 
 	//ofstream outfile;
 	//outfile.open("/home/bingyu/ProMotionPlan/ICRA/scaling/clearance3.txt");
+	Obs_veh.pose.position.x = Driver.state[0];
+	Obs_veh.pose.position.y = Driver.state[1];
+	Obs_veh.pose.position.z = 0;
+	Obs_veh.pose.orientation.x = 0.0;
+	Obs_veh.pose.orientation.y = 0.0;
+	Obs_veh.pose.orientation.z = sin(Driver.state[2]/2);
+	Obs_veh.pose.orientation.w = cos(Driver.state[2]/2);
 
 	ros::Duration(130.2).sleep();
 	while (count <= 220)
@@ -90,17 +97,8 @@ int main(int argc, char** argv){
 
 		Obs_veh.pose.position.x = Driver.state[0];
 		Obs_veh.pose.position.y = Driver.state[1];
-		Obs_veh.pose.position.z = 0;
-		Obs_veh.pose.orientation.x = 0.0;
-		Obs_veh.pose.orientation.y = 0.0;
 		Obs_veh.pose.orientation.z = sin(Driver.state[2]/2);
 		Obs_veh.pose.orientation.w = cos(Driver.state[2]/2);
-
-		/** record data **/
-		dis = sqrt(std::pow((Driver.state[0] - Driver.pose_R[0]),2) + std::pow((Driver.state[1] - Driver.pose_R[1]),2));
-
-		//outfile << dis << endl;
-
 
 		veh_pub.publish(Obs_veh);
 		count++;

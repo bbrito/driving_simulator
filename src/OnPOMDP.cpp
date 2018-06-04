@@ -202,6 +202,7 @@ Solver* POMDP::InitializeSolver(DSPOMDP *model, string solver_type,
   {
     string blbtype = options[E_BLBTYPE] ? options[E_BLBTYPE].arg : "DEFAULT";
     string lbtype = options[E_LBTYPE] ? options[E_LBTYPE].arg : "DEFAULT";
+	  ROS_INFO_STREAM("POMDP::InitializeSolver: ScenarioLowerBound");
     ScenarioLowerBound *lower_bound =
         model->CreateScenarioLowerBound(lbtype, blbtype);
 
@@ -210,11 +211,12 @@ Solver* POMDP::InitializeSolver(DSPOMDP *model, string solver_type,
     if (solver_type == "DESPOT") {
       string bubtype = options[E_BUBTYPE] ? options[E_BUBTYPE].arg : "DEFAULT";
       string ubtype = options[E_UBTYPE] ? options[E_UBTYPE].arg : "DEFAULT";
+		ROS_INFO_STREAM("POMDP::InitializeSolver: ScenarioUpperBound");
       ScenarioUpperBound *upper_bound =
           model->CreateScenarioUpperBound(ubtype, bubtype);
-
+		//here it initializes again the plan and it takes too long...
       logi << "Created upper bound " << typeid(*upper_bound).name() << endl;
-
+		ROS_INFO_STREAM("POMDP::InitializeSolver: New DESPOT...");
       solver = new DESPOT(model, lower_bound, upper_bound);
     } else
       solver = lower_bound;
