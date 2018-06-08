@@ -1,0 +1,28 @@
+<launch>
+    <param name="use_sim_time" value="false"/>
+
+    <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find driving_simulator)/src/simulator.rviz " />
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find driving_simulator)/src/map.yaml" output="screen"/>
+    <node name="tf" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 /map /my_frame 10"/>
+    <arg name="model_driver_config" default="$(find driving_simulator)"/>
+
+    <node name="MultipolicyMPC" pkg="driving_simulator" type="MultipolicyMPC" respawn="false" output="screen"/>
+
+    <node name="DESPOT" pkg="driving_simulator" type="POMDPSolver_node" respawn="false" output="screen">
+        <rosparam command="load" file="$(arg model_driver_config)/config/pomdp_agent1.yaml" />
+        <remap from="traj_A0" to="/traj_A0"/>
+        <remap from="traj_A1" to="/traj_A1"/>
+        <remap from="belief" to="/belief"/>
+        <param name="listen_state" value="state_A"/>
+        <param name="listen_action" value="action"/>
+    </node>
+
+    <group ns="Driver1">
+        <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen">
+            <rosparam command="load" file="$(arg model_driver_config)/config/driver1.yaml" />
+            <remap from="state_A" to="/state_A"/>
+            <remap from="action" to="/action"/>
+        </node>
+    </group>
+
+</launch>
