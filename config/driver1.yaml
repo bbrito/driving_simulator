@@ -20,5 +20,12 @@ x_A_1 : [40, 30, 23, 23]
 y_A_1 : [8, 8, 0, -50]
 theta_A_1: [3.14, 3.14, -1.72, -1.72]
 
+##Topics
+state_topic: "state_A"
+action_topic: "action"
+vis_topic: "/visualization_marker"
+
+root_frame: "map"
+frame_id: "agent1"
 driving_style: "Constant"
 color: [0, 0, 1, 1]

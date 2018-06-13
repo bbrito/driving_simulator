@@ -7,6 +7,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
   driving_simulator_msgs
+        tf2_ros
+        tf2
 )
 
 find_package(Despot CONFIG REQUIRED)
@@ -14,7 +16,7 @@ find_package(Despot CONFIG REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES driving_simulator
-  CATKIN_DEPENDS message_runtime driving_simulator_msgs
+  CATKIN_DEPENDS message_runtime driving_simulator_msgs tf2_ros tf2
 #  DEPENDS system_lib
 )
 

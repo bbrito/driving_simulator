@@ -9,8 +9,12 @@
 #include <driving_simulator_msgs/Waypoint.h>
 #include <driving_simulator_msgs/State.h>
 #include <driving_simulator_msgs/Action.h>
-#include "/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/spline.h"
-#include "/home/bdebrito/code/ProbabilisticMotionPlanning-MasterThesis/POMDP/POMDP/src/Clothoid.h"
+#include <driving_simulator/spline.h>
+#include <driving_simulator/Clothoid.h>
+
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TransformStamped.h>
 
 #include <vector>
 #include <cmath>
@@ -25,8 +29,9 @@ private:
     double dist_spline_pts;
 
     ros::NodeHandle n_;
-    ros::Publisher stateA_pub = n_.advertise<driving_simulator_msgs::State>("state_A", 100);
-    ros::Publisher action_pub = n_.advertise<driving_simulator_msgs::Action>("action", 100);
+    ros::Publisher stateA_pub;
+    ros::Publisher action_pub;
+	ros::Publisher veh_pub;
 
     driving_simulator_msgs::State state_A_ros;
     driving_simulator_msgs::Action action;
@@ -59,8 +64,23 @@ public:
 	vector<double> theta_A_1;
 
     vector<double> state;
-
     vector<double> pose_R;
+
+	string root_frame;
+	string frame_id;
+	int driver_id;
+	string driving_style;
+
+	//Topic names
+	string state_topic;
+	string action_topic;
+	string vis_topic;
+
+	//TF
+	tf2_ros::TransformBroadcaster state_pub_;
+
+	//Visualization parameters
+	vector<double> color;
 
     void ConstSpeed(double speed);
 
@@ -71,7 +91,11 @@ public:
 
     void ConstructRefPath();
 
-    void Callback(const driving_simulator_msgs::State::ConstPtr& msg);
+    void RobotPose(const driving_simulator_msgs::State::ConstPtr& msg);
+
+	void visualize();
+
+	void broadcastTF();
 
 };
 

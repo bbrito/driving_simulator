@@ -696,6 +696,7 @@ int main(int argc, char **argv)
     ros::Rate r(2.5);
 	ROS_WARN_STREAM("MPC Started");
     ros::Publisher veh_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 100);
+	ros::Publisher cmd_pub = n.advertise<geometry_msgs::Pose>("cmd", 100);
     ros::Subscriber trajA0_sub = n.subscribe("traj_A0", 100, Callback1);
     ros::Subscriber trajA1_sub = n.subscribe("traj_A1", 100, Callback2);
     ros::Subscriber belief_sub = n.subscribe("belief", 100, Callback3);
@@ -711,7 +712,6 @@ int main(int argc, char **argv)
     ros::Subscriber trajA0_3_sub = n.subscribe("traj_A0_3", 100, Callback10);
     ros::Subscriber trajA1_3_sub = n.subscribe("traj_A1_3", 100, Callback11);
     ros::Subscriber belief_3_sub = n.subscribe("belief_3", 100, Callback12);
-	ROS_INFO_STREAM("MPC Started");
 
     uint32_t shape = visualization_msgs::Marker::CUBE;
 
@@ -886,17 +886,14 @@ int main(int argc, char **argv)
     }
 
 
-
-    //ros::Duration(6.5).sleep(); // no rqt
-    ros::Duration(130.2).sleep();
-
-//    ofstream outfile;
-//    outfile.open("/home/bingyu/ProMotionPlan/ICRA/scaling/MPC_time3.txt");
+	ROS_INFO_STREAM("Waiting for /solver_is_on");
+	ros::service::waitForService("/solver_is_on", -1);
 
     vector< vector<driving_simulator_msgs::Waypoint> > est_traj_A_0(4), est_traj_A_1(4);
     vector< vector<double> > belief_all(4);
     double solvetime = 0;
 	ROS_INFO_STREAM("MPC Started");
+	geometry_msgs::Pose pose;
     while (count <= 220)
     {
         //listening on traj_A_0, traj_A_1, beliefs
@@ -940,7 +937,14 @@ int main(int argc, char **argv)
         Ego_veh.pose.orientation.y = 0.0;
         Ego_veh.pose.orientation.z = sin(state_R[2]/2);
         Ego_veh.pose.orientation.w = cos(state_R[2]/2);
-
+		pose.position.x = state_R[0];
+		pose.position.y = state_R[1];
+		pose.position.z = 0;
+		pose.orientation.x = 0.0;
+		pose.orientation.y = 0.0;
+		pose.orientation.z = sin(state_R[2]/2);
+		pose.orientation.w = cos(state_R[2]/2);
+		cmd_pub.publish(pose);
         veh_pub.publish(Ego_veh);
 
 

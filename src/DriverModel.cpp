@@ -98,11 +98,66 @@ DriverModel::DriverModel(){
         return;
     }
 
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/frame_id", frame_id))
+    {
+        ROS_ERROR("Parameter 'Obs_veh.frame_id' not set");
+        return ;
+    }
+
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/root_frame", root_frame))
+    {
+        ROS_ERROR("Parameter 'Obs_veh.root_frame' not set");
+        return ;
+    }
+
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/Id", driver_id))
+    {
+        ROS_ERROR("Parameter 'Obs_veh.id' not set");
+        return ;
+    }
+
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/driving_style", driving_style))
+    {
+        ROS_ERROR("Parameter 'driving_style' not set");
+        return ;
+    }
+
+
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/color", color))
+    {
+        ROS_ERROR("Parameter 'color' not set");
+        return ;
+    }
+
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/state_topic", state_topic))
+    {
+        ROS_ERROR("Parameter 'state_topic' not set");
+        return ;
+    }
+
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/action_topic", action_topic))
+    {
+        ROS_ERROR("Parameter 'action_topic' not set");
+        return ;
+    }
+
+
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/vis_topic", vis_topic))
+    {
+        ROS_ERROR("Parameter 'vis_topic' not set");
+        return ;
+    }
+
     //pose_R = {initi_ego_x, initi_ego_y, PI/2};
     pose_R = {0, 0, 0, 0, 0, 0};
     state = init_obs;
 
-    poseR_sub = n_.subscribe("pose_R", 100, &DriverModel::Callback, this);
+    stateA_pub = n_.advertise<driving_simulator_msgs::State>(state_topic, 100);
+    action_pub = n_.advertise<driving_simulator_msgs::Action>(action_topic, 100);
+
+    veh_pub = n_.advertise<visualization_msgs::Marker>(vis_topic, 100);
+
+    poseR_sub = n_.subscribe("pose_R", 100, &DriverModel::RobotPose, this);
 
     ROS_INFO("Driver started");
 }
@@ -373,6 +428,55 @@ void DriverModel::ConservativeDriver(){
 
 }
 
-void DriverModel::Callback(const driving_simulator_msgs::State::ConstPtr& msg){
+void DriverModel::RobotPose(const driving_simulator_msgs::State::ConstPtr& msg){
     pose_R = msg->pose;
+}
+
+void DriverModel::visualize(){
+
+    visualization_msgs::Marker Obs_veh;
+
+    Obs_veh.header.frame_id = root_frame;
+    Obs_veh.ns = n_.getNamespace();
+    Obs_veh.type = visualization_msgs::Marker::CUBE;
+    Obs_veh.action = visualization_msgs::Marker::ADD;
+    Obs_veh.scale.x = Length;
+    Obs_veh.scale.y = Width;
+    Obs_veh.scale.z = 1;
+
+
+    Obs_veh.color.r = color[0];
+    Obs_veh.color.g = color[1];
+    Obs_veh.color.b = color[2];
+    Obs_veh.color.a = color[3];
+
+    Obs_veh.lifetime = ros::Duration();
+
+    Obs_veh.pose.position.x = state[0];
+    Obs_veh.pose.position.y = state[1];
+    Obs_veh.pose.position.z = 0;
+    Obs_veh.pose.orientation.x = 0.0;
+    Obs_veh.pose.orientation.y = 0.0;
+    Obs_veh.pose.orientation.z = sin(state[2]/2);
+    Obs_veh.pose.orientation.w = cos(state[2]/2);
+
+    veh_pub.publish(Obs_veh);
+}
+
+void DriverModel::broadcastTF(){
+
+    geometry_msgs::TransformStamped transformStamped;
+    transformStamped.header.stamp = ros::Time::now();
+    transformStamped.header.frame_id = root_frame;
+    transformStamped.child_frame_id = frame_id;
+    transformStamped.transform.translation.x = state[0];
+    transformStamped.transform.translation.y = state[1];
+    transformStamped.transform.translation.z = 0.0;
+
+    transformStamped.transform.rotation.x = 0.0;
+    transformStamped.transform.rotation.y = 0.0;
+    transformStamped.transform.rotation.z = sin(state[2]/2);
+    transformStamped.transform.rotation.w = cos(state[2]/2);
+
+    state_pub_.sendTransform(transformStamped);
 }

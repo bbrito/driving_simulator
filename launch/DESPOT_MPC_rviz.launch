@@ -6,84 +6,39 @@
     <node name="tf" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 /map /my_frame 10"/>
     <arg name="model_driver_config" default="$(find driving_simulator)"/>
 
-    <!--Publish the Marker pose
-    <node name="DESPOT" pkg="driving_simulator" type="POMDPSolver_node" respawn="false" output="screen">
-            <rosparam command="load" file="$(arg model_driver_config)/config/pomdp_agent1.yaml" />
-    </node>
-
-    <node name="DESPOT" pkg="driving_simulator" type="DESPOT" respawn="false" output="screen"/>
-    <node name="DESPOT1" pkg="driving_simulator" type="DESPOT1" respawn="false" output="screen"/>
-    <node name="DESPOT2" pkg="driving_simulator" type="DESPOT2" respawn="false" output="screen"/>
-    <node name="DESPOT3" pkg="driving_simulator" type="DESPOT3" respawn="false" output="screen"/>
-    -->
-    <node name="MultipolicyMPC" pkg="driving_simulator" type="MultipolicyMPC" respawn="false" output="screen"/>
-
-    <node name="DESPOT" pkg="driving_simulator" type="POMDPSolver_node" respawn="false" output="screen">
-        <rosparam command="load" file="$(arg model_driver_config)/config/pomdp_agent1.yaml" />
-        <remap from="traj_A0" to="/traj_A0"/>
-        <remap from="traj_A1" to="/traj_A1"/>
-        <remap from="belief" to="/belief"/>
-        <param name="listen_state" value="state_A"/>
-        <param name="listen_action" value="action"/>
-    </node>
-
-    <node name="DESPOT1" pkg="driving_simulator" type="POMDPSolver_node" respawn="false" output="screen">
-        <rosparam command="load" file="$(arg model_driver_config)/config/pomdp_agent2.yaml" />
-        <remap from="traj_A0" to="/traj_A0_1"/>
-        <remap from="traj_A1" to="/traj_A1_1"/>
-        <remap from="belief" to="/belief_1"/>
-        <param name="listen_state" value="state_A_1"/>
-        <param name="listen_action" value="action_1"/>
-    </node>
-
-    <node name="DESPOT2" pkg="driving_simulator" type="POMDPSolver_node" respawn="false" output="screen">
-        <rosparam command="load" file="$(arg model_driver_config)/config/pomdp_agent3.yaml" />
-        <remap from="traj_A0" to="/traj_A0_2"/>
-        <remap from="traj_A1" to="/traj_A1_2"/>
-        <remap from="belief" to="/belief_2"/>
-        <param name="listen_state" value="state_A_2"/>
-        <param name="listen_action" value="action_2"/>
-    </node>
-
-    <node name="DESPOT3" pkg="driving_simulator" type="POMDPSolver_node" respawn="false" output="screen">
-        <rosparam command="load" file="$(arg model_driver_config)/config/pomdp_agent4.yaml" />
-        <remap from="traj_A0" to="/traj_A0_3"/>
-        <remap from="traj_A1" to="/traj_A1_3"/>
-        <remap from="belief" to="/belief_3"/>
-        <param name="listen_state" value="state_A_3"/>
-        <param name="listen_action" value="action_3"/>
-    </node>
+    <!--Publish the Marker pose -->
+    <node name="DESPOT" pkg="driving_simulator" type="DESPOT" respawn="false" output="log"/>
+    <node name="DESPOT1" pkg="driving_simulator" type="DESPOT1" respawn="false" output="log"/>
+    <node name="DESPOT2" pkg="driving_simulator" type="DESPOT2" respawn="false" output="log"/>
+    <node name="DESPOT3" pkg="driving_simulator" type="DESPOT3" respawn="false" output="log"/>
+    <node name="MultipolicyMPC" pkg="driving_simulator" type="MultipolicyMPC" respawn="false" output="log"/>
 
     <group ns="Driver1">
-        <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen">
-            <rosparam command="load" file="$(arg model_driver_config)/config/driver1.yaml" />
-            <remap from="state_A" to="/state_A"/>
-            <remap from="action" to="/action"/>
-        </node>
+        <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen"/>
+        <rosparam command="load" file="$(arg model_driver_config)/config/driver1.yaml" />
+        <remap from="Driver1/state_A" to="/state_A"/>
+        <remap from="Driver1/action" to="/action"/>
     </group>
 
     <group ns="obs_vehicle_1">
-        <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen">
-            <rosparam command="load" file="$(arg model_driver_config)/config/driver2.yaml" />
-            <remap from="state_A" to="/state_A_1"/>
-            <remap from="action" to="/action_1"/>
-        </node>
+        <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen"/>
+        <rosparam command="load" file="$(arg model_driver_config)/config/driver2.yaml" />
+        <remap from="state_A" to="/state_A_1"/>
+        <remap from="action" to="/action_1"/>
     </group>
 
     <group ns="obs_vehicle_2">
-        <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen">
-            <rosparam command="load" file="$(arg model_driver_config)/config/driver3.yaml" />
-            <remap from="state_A" to="/state_A_2"/>
-            <remap from="action" to="/action_2"/>
-        </node>
-    </group>
+        <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen"/>
+        <rosparam command="load" file="$(arg model_driver_config)/config/driver3.yaml" />
+        <remap from="state_A" to="/state_A_2"/>
+        <remap from="action" to="/action_2"/>
+        </group>
 
     <group ns="obs_vehicle_3">
-        <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen">
-            <rosparam command="load" file="$(arg model_driver_config)/config/driver4.yaml" />
-            <remap from="state_A" to="/state_A_3"/>
-            <remap from="action" to="/action_3"/>
-        </node>
+        <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen"/>
+        <rosparam command="load" file="$(arg model_driver_config)/config/driver4.yaml" />
+        <remap from="state_A" to="/state_A_3"/>
+        <remap from="action" to="/action_3"/>
     </group>
 
 </launch>

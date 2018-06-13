@@ -439,7 +439,8 @@ void POMDP_Plan::Init(){
 	int y_A_bound_u = 10;
 	int count = 1;
 	vector<int> s(4);
-	ROS_INFO_STREAM("POMDP_Plan::Init(");
+
+	//Not necessary
 	for(x_R = x_R_bound_l; x_R <= x_R_bound_u; x_R = x_R + 1){
 		for(y_R = y_R_bound_l; y_R <= y_R_bound_u; y_R = y_R + 1){
 			for(x_A = x_A_bound_l; x_A <= x_A_bound_u; x_A=x_A+1){
@@ -451,7 +452,7 @@ void POMDP_Plan::Init(){
 			}
 		}
 	}
-	ROS_INFO_STREAM("POMDP_Plan::Init(): Done");
+
 
 }
 int POMDP_Plan::MakeObservation(const POMDP_Plan_State _pomdp_state) const{

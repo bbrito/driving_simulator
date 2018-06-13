@@ -109,15 +109,7 @@ void POMDP::InitializeDefaultParameters(){
 }
 
 DSPOMDP* POMDP::InitializeModel(option::Option* options){
-	POMDP_Plan* model  = new POMDP_Plan();
-
-	initi_ego_x = model->initi_ego_x;
-	initi_ego_y = model->initi_ego_y;
-	initi_ego_v = model->initi_ego_v;
-	initi_obs_x = model->initi_obs_x;
-	initi_obs_y = model->initi_obs_y;
-	initi_obs_v = model->initi_obs_v;
-	n_points_spline = model->n_points_spline;
+	DSPOMDP* model  = new POMDP_Plan();
 
     return model;
 }
@@ -345,12 +337,11 @@ void POMDP::Initialization(int argc, char* argv[]){
   assert(solver != NULL);
 
 
-    // Initial state
+	ROS_WARN_STREAM("Initial state");
 	State* state = model->CreateStartState();
 
-   /* =========================
-      Initial belief
-      =========================*/
+   /* =========================*/
+      ROS_WARN_STREAM("Initial belief");
 
 	double start_t = get_time_second();
 	delete solver->belief();
@@ -361,9 +352,9 @@ void POMDP::Initialization(int argc, char* argv[]){
 	solver->belief(belief);
 
 
-	/*=========================
-	   Reference path for obstacle vehicle
-	   ========================*/
+	/*=========================*/
+	ROS_WARN_STREAM("Reference path for obstacle vehicle");
+
 	if (!n_.getParam(ros::this_node::getName()+"/x_A_0", x_A_0))
 	{
 		ROS_ERROR("Parameter 'x_A_0' not set");
@@ -399,6 +390,7 @@ void POMDP::Initialization(int argc, char* argv[]){
 		return;
 	}
 
+	// takes an huge time. why is this necessary?
 	REF_PATH_A_0 = Ref_path(x_A_0, y_A_0, theta_A_0);
 	//cout << REF_PATH_A_0.size() << endl;
 	REF_PATH_A_1 = Ref_path(x_A_1, y_A_1, theta_A_1);

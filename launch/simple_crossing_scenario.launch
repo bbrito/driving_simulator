@@ -8,8 +8,12 @@
 
     <node name="MultipolicyMPC" pkg="driving_simulator" type="MultipolicyMPC" respawn="false" output="screen"/>
 
-    <node name="DESPOT" pkg="driving_simulator" type="POMDPSolver_node" respawn="false" output="screen">
-        <rosparam command="load" file="$(arg model_driver_config)/config/pomdp_agent1.yaml" />
+    <node name="ego_agent" pkg="car_sim" type="car_sim_node" respawn="false" output="screen">
+            <rosparam command="load" file="$(find car_sim)/config/ego_agent.yaml" />
+    </node>
+
+    <node name="DESPOT" pkg="motion_predictor" type="motion_predictor_node" respawn="false" output="screen">
+        <rosparam command="load" file="$(find motion_predictor)/config/pomdp_agent1.yaml" />
         <remap from="traj_A0" to="/traj_A0"/>
         <remap from="traj_A1" to="/traj_A1"/>
         <remap from="belief" to="/belief"/>
