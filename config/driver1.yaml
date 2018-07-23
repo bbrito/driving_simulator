@@ -24,8 +24,11 @@ theta_A_1: [3.14, 3.14, -1.72, -1.72]
 state_topic: "state_A"
 action_topic: "action"
 vis_topic: "/visualization_marker"
+sensor_data_topic: "sensor1"
 
 root_frame: "map"
-frame_id: "agent1"
+agent_frame_id: "agent1"
+robot_frame_id: "base_link"
+
 driving_style: "Constant"
 color: [0, 0, 1, 1]

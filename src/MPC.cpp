@@ -2,7 +2,7 @@
 
 #include <driving_simulator/MPC.h>
 #include <algorithm>
-
+#include <std_srvs/Empty.h>
 #include <sstream>
 #include <stdio.h>
 #include <fstream>
@@ -199,6 +199,8 @@ MPMPC::MPMPC(){
 	line.type = visualization_msgs::Marker::LINE_STRIP;
     line.id = 5;
     line.scale.x = 0.1;
+	line.scale.y = 0.1;
+	line.scale.z = 0.1;
     line.color.r = 1.0f;
     line.color.a = 1.0;
     line.header.frame_id = "/my_frame";
@@ -688,6 +690,11 @@ void Callback12(const driving_simulator_msgs::Belief::ConstPtr& msg){
      belief_3 = msg->belief;
 }
 
+bool HelloFromMPC(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res){
+
+	return true;
+}
+
 int main(int argc, char **argv)
 {
     // ROS connection
@@ -888,6 +895,11 @@ int main(int argc, char **argv)
 
 	ROS_INFO_STREAM("Waiting for /solver_is_on");
 	ros::service::waitForService("/solver_is_on", -1);
+	ROS_INFO_STREAM("Waiting for /solver_is_on2");
+	ros::service::waitForService("/solver_is_on2", -1);
+
+	ros::ServiceServer service;
+	service = n.advertiseService("mpc_is_on", &HelloFromMPC); //allows to trigger the MPC because initialization takes an hug and random time
 
     vector< vector<driving_simulator_msgs::Waypoint> > est_traj_A_0(4), est_traj_A_1(4);
     vector< vector<double> > belief_all(4);

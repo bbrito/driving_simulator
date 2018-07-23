@@ -11,12 +11,7 @@ Panels:
         - /Marker1
         - /Map1
         - /Map1/Orientation1
-        - /Axes1
-        - /Marker2
-        - /Marker3
-        - /Marker4
-        - /Axes2
-        - /Axes3
+        - /RobotModel1
       Splitter Ratio: 0.5
     Tree Height: 747
   - Class: rviz/Selection
@@ -64,9 +59,7 @@ Visualization Manager:
       Marker Topic: /visualization_marker
       Name: Marker
       Namespaces:
-        //Driver1: true
-        ego_vehicle: true
-        trajectory: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 0.699999988
@@ -79,56 +72,82 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
-    - Class: rviz/Axes
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
       Enabled: true
-      Length: 1
-      Name: Axes
-      Radius: 0.100000001
-      Reference Frame: <Fixed Frame>
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        chassis_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        fenders_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        mid_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        navsat_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rear_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotModel
+      Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
       Value: true
-    - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /obs_vehicle_1/visualization_marker
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /obs_vehicle_2/visualization_marker
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /obs_vehicle_3/visualization_marker
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Class: rviz/Axes
-      Enabled: true
-      Length: 3
-      Name: Axes
-      Radius: 0.5
-      Reference Frame: base_link
-      Value: true
-    - Class: rviz/Axes
-      Enabled: true
-      Length: 3
-      Name: Axes
-      Radius: 0.300000012
-      Reference Frame: agent1
-      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -149,25 +168,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 114.085167
+      Distance: 252.205978
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 24.9124966
-        Y: 3.90767622
-        Z: 10.1979818
+        X: 16.5671253
+        Y: 41.3814392
+        Z: 15.6798906
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.13979673
+      Pitch: 1.21479666
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.02818012
+      Yaw: 6.10818195
     Saved:
       - Class: rviz/Orbit
         Distance: 68.4702988

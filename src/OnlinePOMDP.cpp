@@ -431,7 +431,8 @@ void POMDP::Initialization(int argc, char* argv[]){
 }
 
 void POMDP::ReconstructPolicy(vector<int> policyStar, vector<int> depthOrder, vector<int>& policy0, vector<int>& policy1){
-
+// hack in the despot to return the 2 policies according with each motion intention
+    //policyStar comes from despot
     policy0.push_back(policyStar[0]);
     int i;
     for (i=1; i<depthOrder.size(); i++){

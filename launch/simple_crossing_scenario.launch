@@ -3,9 +3,9 @@
 
     <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find driving_simulator)/src/simulator.rviz " />
     <node name="map_server" pkg="map_server" type="map_server" args="$(find driving_simulator)/src/map.yaml" output="screen"/>
-    <node name="tf" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 /map /my_frame 10"/>
+    <node pkg="tf" type="static_transform_publisher" name="static_transform_publisher_map_odom" output="screen" args="27 -12 0 0 0 0.707 0.707  map odom 100"/>
     <arg name="model_driver_config" default="$(find driving_simulator)"/>
-
+<!--
     <node name="MultipolicyMPC" pkg="driving_simulator" type="MultipolicyMPC" respawn="false" output="screen"/>
 
     <node name="ego_agent" pkg="car_sim" type="car_sim_node" respawn="false" output="screen">
@@ -17,8 +17,19 @@
         <remap from="traj_A0" to="/traj_A0"/>
         <remap from="traj_A1" to="/traj_A1"/>
         <remap from="belief" to="/belief"/>
-        <param name="listen_state" value="state_A"/>
-        <param name="listen_action" value="action"/>
+        <remap from="solver_is_on" to="/solver_is_on"/>
+        <param name="agent_state" value="state_A"/>
+        <param name="agent_action" value="action"/>
+    </node>
+
+    <node name="DESPOT2" pkg="motion_predictor" type="motion_predictor_node" respawn="false" output="screen">
+            <rosparam command="load" file="$(find motion_predictor)/config/pomdp_agent2.yaml" />
+            <remap from="traj_A0" to="/traj_A0"/>
+            <remap from="traj_A1" to="/traj_A1"/>
+            <remap from="belief" to="/belief"/>
+            <remap from="solver_is_on" to="/solver_is_on2"/>
+            <param name="agent_state" value="state_A_1"/>
+            <param name="agent_action" value="action_1"/>
     </node>
 
     <group ns="Driver1">
@@ -29,4 +40,12 @@
         </node>
     </group>
 
+    <group ns="Driver2">
+            <node name="DriverModel" pkg="driving_simulator" type="DriverModel_node" respawn="false" output="screen">
+                <rosparam command="load" file="$(arg model_driver_config)/config/driver2.yaml" />
+                <remap from="state_A_1" to="/state_A_1"/>
+                <remap from="action_1" to="/action_1"/>
+            </node>
+    </group>
+-->
 </launch>

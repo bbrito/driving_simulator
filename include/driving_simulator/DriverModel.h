@@ -15,11 +15,14 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
-
+#include <driving_simulator_msgs/Sensor.h>
 #include <vector>
 #include <cmath>
 
 #include <typeinfo>
+
+#include <tf2_ros/transform_listener.h>
+#include <tf/tf.h>
 const double PI = 3.1415926;
 
 using namespace std;
@@ -32,6 +35,7 @@ private:
     ros::Publisher stateA_pub;
     ros::Publisher action_pub;
 	ros::Publisher veh_pub;
+	ros::Publisher sensor_pub_;
 
     driving_simulator_msgs::State state_A_ros;
     driving_simulator_msgs::Action action;
@@ -67,7 +71,7 @@ public:
     vector<double> pose_R;
 
 	string root_frame;
-	string frame_id;
+	string robot_frame_id,agent_frame_id;
 	int driver_id;
 	string driving_style;
 
@@ -75,6 +79,7 @@ public:
 	string state_topic;
 	string action_topic;
 	string vis_topic;
+	string sensor_data_topic;
 
 	//TF
 	tf2_ros::TransformBroadcaster state_pub_;
@@ -96,6 +101,8 @@ public:
 	void visualize();
 
 	void broadcastTF();
+
+	void SimulateSensorMeasurements();
 
 };
 

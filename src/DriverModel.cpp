@@ -30,7 +30,7 @@ DriverModel::DriverModel(){
     vector<double> init_state;
     if (!n_.getParam(n_.getNamespace()+"/DriverModel/init_state", init_state))
     {
-        ROS_ERROR("Parameter 'radius_disks' not set");
+        ROS_ERROR("Parameter 'init_state' not set");
         return;
     }
     else{
@@ -41,7 +41,7 @@ DriverModel::DriverModel(){
     vector<double> init_obs;
     if (!n_.getParam(n_.getNamespace()+"/DriverModel/init_obs", init_obs))
     {
-        ROS_ERROR("Parameter 'radius_disks' not set");
+        ROS_ERROR("Parameter 'init_obs' not set");
         return;
     }
     else{
@@ -98,9 +98,15 @@ DriverModel::DriverModel(){
         return;
     }
 
-    if (!n_.getParam(n_.getNamespace()+"/DriverModel/frame_id", frame_id))
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/agent_frame_id", agent_frame_id))
     {
-        ROS_ERROR("Parameter 'Obs_veh.frame_id' not set");
+        ROS_ERROR("Parameter 'agent_frame_id' not set");
+        return ;
+    }
+
+    if (!n_.getParam(n_.getNamespace()+"/DriverModel/robot_frame_id", robot_frame_id))
+    {
+        ROS_ERROR("Parameter 'robot_frame_id' not set");
         return ;
     }
 
@@ -148,6 +154,12 @@ DriverModel::DriverModel(){
         return ;
     }
 
+	if (!n_.getParam(n_.getNamespace()+"/DriverModel/sensor_data_topic", sensor_data_topic))
+	{
+		ROS_ERROR("Parameter 'sensor_data_topic' not set");
+		return ;
+	}
+
     //pose_R = {initi_ego_x, initi_ego_y, PI/2};
     pose_R = {0, 0, 0, 0, 0, 0};
     state = init_obs;
@@ -156,7 +168,7 @@ DriverModel::DriverModel(){
     action_pub = n_.advertise<driving_simulator_msgs::Action>(action_topic, 100);
 
     veh_pub = n_.advertise<visualization_msgs::Marker>(vis_topic, 100);
-
+	sensor_pub_ = n_.advertise<driving_simulator_msgs::Sensor>(sensor_data_topic, 100);
     poseR_sub = n_.subscribe("pose_R", 100, &DriverModel::RobotPose, this);
 
     ROS_INFO("Driver started");
@@ -468,7 +480,7 @@ void DriverModel::broadcastTF(){
     geometry_msgs::TransformStamped transformStamped;
     transformStamped.header.stamp = ros::Time::now();
     transformStamped.header.frame_id = root_frame;
-    transformStamped.child_frame_id = frame_id;
+    transformStamped.child_frame_id = agent_frame_id;
     transformStamped.transform.translation.x = state[0];
     transformStamped.transform.translation.y = state[1];
     transformStamped.transform.translation.z = 0.0;
@@ -479,4 +491,39 @@ void DriverModel::broadcastTF(){
     transformStamped.transform.rotation.w = cos(state[2]/2);
 
     state_pub_.sendTransform(transformStamped);
+}
+
+void DriverModel::SimulateSensorMeasurements(){
+
+    vector<double> relative_state;
+    relative_state.resize(3); // x,y,theta
+    tf2_ros::Buffer tfBuffer;
+    tf2_ros::TransformListener tfListener(tfBuffer);
+    geometry_msgs::TransformStamped transformStamped;
+
+    try {
+        while(!tfBuffer.canTransform(robot_frame_id, agent_frame_id,ros::Time(0))){};
+        transformStamped = tfBuffer.lookupTransform(robot_frame_id, agent_frame_id, ros::Time(0), ros::Duration(1.0));
+        relative_state[0] = transformStamped.transform.translation.x;
+        relative_state[1] = transformStamped.transform.translation.y;
+        // Convert quaternions to euler angle and store in rotation.z
+        double roll, pitch, yaw;
+        tf::Quaternion q(transformStamped.transform.rotation.x,
+                         transformStamped.transform.rotation.y,
+                         transformStamped.transform.rotation.z,
+                         transformStamped.transform.rotation.w);
+        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+        relative_state[2] = yaw;
+
+    }
+    catch (tf2::TransformException &ex) {
+        ROS_WARN("%s",ex.what());
+    }
+
+	driving_simulator_msgs::Sensor msg;
+	msg.distance = std::sqrt(relative_state[0]*relative_state[0]+relative_state[1]*relative_state[1]);
+	msg.angle = std::atan2(relative_state[1],relative_state[0]);
+	msg.obstacle_orientation = relative_state[2];
+
+	sensor_pub_.publish(msg);
 }

@@ -54,7 +54,10 @@ string POMDP_Plan_State::text()const{
 	return "ego-veh position = " + to_string(state_R) + "obstacle position = " +
 			to_string(state_A);
 }
-
+// we are doing scenario sampling
+	//we need to get the upper bound for each state
+	//according with the entropy of the state. which state is wroth it to explore
+	//paper they give some examples how to use it
 class POMDPSmartParticleUpperBound : public ParticleUpperBound, POMDP_Plan{
 protected:
 	const DSPOMDP* model_;
@@ -89,7 +92,7 @@ public:
 	int Action(const vector<State*>& particles, RandomStreams& streams, History& history) const{
 		const POMDP_Plan_State& state = static_cast<POMDP_Plan_State&>(*particles[0]);
 		int smart_action;
-
+//initial guess for the initial policy
 		if (history.Size()>0){
 			int action = history.LastAction();
 			OBS_TYPE observation = history.LastObservation();
@@ -102,7 +105,7 @@ public:
 
 			double dist_RA = sqrt(pow((x_R-x_A),2) +pow((y_R-y_A),2));
 
-
+//only wants to avoid collision
 			if (1.5*LENGTH < dist_RA && dist_RA < 2.5*LENGTH){
 				if (v_A > 1){
 					return smart_action = 1;
@@ -382,7 +385,8 @@ void POMDP_Plan::Init(){
 	int y_A_bound_u = 10;
 	int count = 1;
 	vector<int> s(4);
-
+	//follows pacman implementation
+	//the number is a label for the state
 	for(x_R = x_R_bound_l; x_R <= x_R_bound_u; x_R = x_R + 1){
 		for(y_R = y_R_bound_l; y_R <= y_R_bound_u; y_R = y_R + 1){
 			for(x_A = x_A_bound_l; x_A <= x_A_bound_u; x_A=x_A+1){
@@ -394,7 +398,6 @@ void POMDP_Plan::Init(){
 			}
 		}
 	}
-
 
 }
 int POMDP_Plan::MakeObservation(const POMDP_Plan_State _pomdp_state) const{
@@ -488,6 +491,8 @@ bool POMDP_Plan::Step(State& state, double rand_num, int action, double& reward,
 		}
 		//cout << "collision: " << flag_coll << endl;
 	}
+		// he tried several rewards/ like discrete..
+		//the continous reward was the function that worked best
 	double reward_goal = Gausspdf(100 - next_state_A[5]);
 	//cout << "reward goal: " << reward_goal << endl;
 	double reward_acc = (action == Acc || action == Dec) ? REWARD_ACC : 0;
@@ -513,7 +518,6 @@ double POMDP_Plan::ObsProb(OBS_TYPE obs, const State& state, int action) const{
 //		return (obs == MakeObservation(pomdp_state)) ? 0.8 : 0.7;
 //	}
 
-
     if (pomdp_state.state_A[4] == 0 && goal_prob_[0] <=0.003)
         return 1.0;
     if (pomdp_state.state_A[4] == 1 && goal_prob_[1] <=0.003)
@@ -521,7 +525,7 @@ double POMDP_Plan::ObsProb(OBS_TYPE obs, const State& state, int action) const{
     if (pomdp_state.state_A[4] == 2 && goal_prob_[2] <=0.003)
         return 1.0;
 
-    if (pomdp_state.state_A[0] >= 29.7){
+    if (pomdp_state.state_A[0] >= 29.7){ // intersection point
         if (action == Dec){
             if (pomdp_state.state_A[4]==2)
                 return (obs==MakeObservation(pomdp_state)) ? 0.75 : 0.85;

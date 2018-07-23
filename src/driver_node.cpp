@@ -15,7 +15,7 @@ int main(int argc, char** argv){
 						<< "  " << Driver.state[3]<< "  " << Driver.state[4] << "  " << Driver.state[5]);
 
 	ROS_INFO_STREAM("Waiting for /solver_is_on");
-	ros::service::waitForService("/solver_is_on", -1);
+	ros::service::waitForService("/mpc_is_on", -1);
 
 	while (count <= 220)
 	{
